@@ -1,6 +1,6 @@
 import { profile } from 'node:console';
-import { loginCheck } from '../auth/auth.ts';
-import { changePassword, changeUsername, getProfile } from './profile.ts';
+import { loginCheck } from '../auth/auth.middleware.ts';
+import { changePassword, changeUsername, getProfile } from './profile.controller.ts';
 import express from 'express';
 const Profilerouter =express.Router()
 Profilerouter.get("/me",loginCheck,getProfile)

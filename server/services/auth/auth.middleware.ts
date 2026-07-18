@@ -1,6 +1,6 @@
 import {Response,Request,NextFunction} from 'express';
 import jwt from 'jsonwebtoken'
-import { pool } from '../db.ts';
+import { pool } from '../db/db.ts';
 async function loginCheck(req:Request,res:Response,next:NextFunction){
     const token = req.cookies.token
     if(!token){

@@ -1,6 +1,6 @@
 import dotenv from 'dotenv'
 dotenv.config()
-import { pool } from './services/db.ts';
+import { pool } from './services/db/db.ts';
 import app from "./app";
 import https from 'https';
 import path from 'path';

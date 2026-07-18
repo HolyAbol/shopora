@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt'
 import {Response,Request,NextFunction} from 'express';
-import { pool } from '../db.ts';
-import { passHasher,compare} from '../auth/Login&signUp.ts';
+import { pool } from '../db/db.ts';
+import { passHasher,compare} from '../auth/auth.controller.ts';
 //get user profile
 async function getProfile(req:Request,res:Response){
      //@ts-ignore

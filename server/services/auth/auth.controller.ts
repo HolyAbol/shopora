@@ -1,9 +1,7 @@
 import bcrypt from 'bcrypt'
 import {Response,Request,NextFunction} from 'express';
 import jwt from 'jsonwebtoken'
-import cookieParser from 'cookie-parser'
-import {pool} from '../db.ts'
-import { only } from 'node:test'
+import {pool} from '../db/db.ts'
 interface userdb{
     username:string,
     password:string
@@ -82,13 +80,6 @@ async function login(req:Request,res:Response){
        res.status(400).json(`unexpected error${err}`)
      }
 }
-function profile(req:Request,res:Response){
-    return res.json({
-        message:"welcome",
-         //@ts-ignore
-        user:req.user
-    })
-}
 function logout(req:Request,res:Response){
     res.clearCookie("token",{
         sameSite:"lax",
@@ -99,4 +90,4 @@ function logout(req:Request,res:Response){
         message:"logged out"
     })
 }
-export {signup,login,profile,logout,passHasher,compare}
+export {signup,login,logout,passHasher,compare}
