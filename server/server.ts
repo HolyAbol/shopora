@@ -1,8 +1,8 @@
-import dotenv from 'dotenv'
-dotenv.config()
+import './config/env.ts'
 import { pool } from './services/db/db.ts';
 import app from "./app";
 import https from 'https';
+import http from 'http'
 import path from 'path';
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url)
