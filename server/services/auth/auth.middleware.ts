@@ -16,12 +16,12 @@ console.log("cookies:", req.cookies);
       userId:number;
    }
    const Result= await pool.query(
-      "SELECT id, username, created_at FROM users WHERE id=$1",
+      "SELECT user_id, username, created_at FROM users WHERE user_id=$1",
       [Payload.userId]
    )
    //@ts-ignore
    req.user=Result.rows[0]
-   console.log(Payload,Result)
+   console.log(Payload)
    next()
     } catch(err){
      console.log(err)
