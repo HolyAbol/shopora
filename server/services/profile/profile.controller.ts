@@ -3,7 +3,7 @@ import { pool } from '../db/db.ts';
 import { passHasher,compare} from '../auth/auth.controller.ts';
 //get user profile
 async function getProfile(req:Request,res:Response){
-     //@ts-ignore
+
     return res.status(200).json(req.user)
 }
 async function changeUsername(req:Request,res:Response){

@@ -1,27 +1,26 @@
 import {Response,Request,NextFunction} from 'express';
 import jwt from 'jsonwebtoken'
+import { tokenPayloadSchema } from './auth.schemas.ts';
 import { pool } from '../db/db.ts';
 async function loginCheck(req:Request,res:Response,next:NextFunction){
     const token = req.cookies.token
     if(!token){
-      res.status(401).json({
+      return res.status(401).json({
          message:"no token provided"
       })
     }
     try{
-       console.log("token:", token);
-//console.log("secret:", process.env.JWT_SECRET);
-console.log("cookies:", req.cookies);
-   const Payload = jwt.verify(token,process.env.JWT_SECRET!) as {
-      userId:number;
-   }
+
+   const decoded = jwt.verify(token,process.env.JWT_SECRET!) 
+   const payload =tokenPayloadSchema.parse(decoded)
+   console.log(payload)
    const Result= await pool.query(
       "SELECT user_id, username, created_at FROM users WHERE user_id=$1",
-      [Payload.userId]
+      [payload.user_id]
    )
-   //@ts-ignore
+   console.log(payload.user_id)
+
    req.user=Result.rows[0]
-   console.log(Payload)
    next()
     } catch(err){
      console.log(err)
