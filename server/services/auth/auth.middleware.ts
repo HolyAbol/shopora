@@ -15,7 +15,7 @@ async function loginCheck(req:Request,res:Response,next:NextFunction){
    const payload =tokenPayloadSchema.parse(decoded)
    console.log(payload)
    const Result= await pool.query(
-      "SELECT user_id, username, created_at FROM users WHERE user_id=$1",
+      "SELECT user_id, username, created_at, email , phone_number FROM users WHERE user_id=$1 AND deleted_at IS NULL",
       [payload.user_id]
    )
    console.log(payload.user_id)

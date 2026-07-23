@@ -8,7 +8,7 @@ interface userdb{
     password:string
 }
 async function findUser(user:userdb){
-const User= await pool.query('select * from users where username =$1',
+const User= await pool.query('select * from users where username =$1 AND deleted_at IS NULL',
         [user.userName])
         return User
 }
@@ -86,14 +86,17 @@ async function login(req:Request,res:Response){
        return res.status(500).json(`unexpected error`)
      }
 }
-function logout(req:Request,res:Response){
-    res.clearCookie("token",{
+function clearCookie(res:Response){
+res.clearCookie("token",{
         sameSite:"lax",
         secure:true,
         httpOnly:true
     })
+}
+function logout(req:Request,res:Response){
+    clearCookie(res)
     return res.status(200).json({
         message:"logged out"
     })
 }
-export {signup,login,logout,passHasher,compare}
+export {signup,login,logout,passHasher,compare,clearCookie}
