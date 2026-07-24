@@ -31,4 +31,4 @@ res.clearCookie("token",{
         httpOnly:true
     })
 }
-export{findUser,clearCookie,compare,passHasher}
+export{findUser,clearCookie,compare,passHasher,userdb}

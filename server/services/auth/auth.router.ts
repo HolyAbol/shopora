@@ -38,7 +38,7 @@ const Authrouter=express.Router()
  *         description: signed up successfully
  *       400:
  *         description: fields shouldn't be empty
- *       404:
+ *       500:
  *         description: unexpected error
  */
 Authrouter.post('/signup',signup)
@@ -55,13 +55,12 @@ Authrouter.post('/signup',signup)
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - username
  *               - password
- *               - phonenumber
  *             properties:
- *               email:
+ *               username:
  *                 type: string
- *                 example: "user@example.com"
+ *                 example: "maninthed"
  *               password:
  *                 type: string
  *                 example: "123456"
@@ -72,7 +71,7 @@ Authrouter.post('/signup',signup)
  *         description: fields shouldn't be empty
  *       403:
  *         description: wrong credentials
- *       404:
+ *       500:
  *         description: unexpected error
  */
 Authrouter.post('/login',login)
@@ -89,6 +88,8 @@ Authrouter.post('/login',login)
  *         description: "bye bye"
  *       401:
  *         description: "invalid or non existent Token"
+ *       500:
+ *         description: unexpected error
  */
 Authrouter.post('/logout',loginCheck,logout)
 export {Authrouter}

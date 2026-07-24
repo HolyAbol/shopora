@@ -1,12 +1,7 @@
 import { findUser,passHasher,compare,clearCookie } from './auth.helpers.ts';
-import {Response,Request,NextFunction} from 'express';
+import {Response,Request} from 'express';
 import jwt from 'jsonwebtoken'
 import {pool} from '../db/db.ts'
-
-interface userdb{
-    userName:string,
-    password:string
-}
 
 async function signup(req:Request,res:Response){
     const creds=req.body

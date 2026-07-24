@@ -58,7 +58,7 @@ Profilerouter.get('/profile',loginCheck,getProfile)
  *         description: "passwords's changed"
  *       401:
  *         description: "not authorized"
- *       404:
+ *       500:
  *         description: "unexpected error"
  */
 Profilerouter.put('/change-password',loginCheck,changePassword)
@@ -87,9 +87,25 @@ Profilerouter.put('/change-password',loginCheck,changePassword)
  *         description: "username's changed"
  *       401:
  *         description: "not authorized"
- *       404:
+ *       500:
  *         description: "unexpected error"
  */
 Profilerouter.put('/change-username',loginCheck,changeUsername)
+/**
+ * @swagger
+ * /v1/api/profile/delete-profile:
+ *   put:
+ *     summary: "delete user's profile"
+ *     tags: [Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: "goodbye"
+ *       401:
+ *         description: "not authorized"
+ *       500:
+ *         description: "unexpected error"
+ */
 Profilerouter.put('/delete-profile',loginCheck,deleteProfile)
 export{Profilerouter}
