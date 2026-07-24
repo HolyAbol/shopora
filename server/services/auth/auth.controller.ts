@@ -1,30 +1,13 @@
-import bcrypt from 'bcrypt'
+import { findUser,passHasher,compare,clearCookie } from './auth.helpers.ts';
 import {Response,Request,NextFunction} from 'express';
 import jwt from 'jsonwebtoken'
 import {pool} from '../db/db.ts'
-import { Pool } from 'pg';
+
 interface userdb{
     userName:string,
     password:string
 }
-async function findUser(user:userdb){
-const User= await pool.query('select * from users where username =$1 AND deleted_at IS NULL',
-        [user.userName])
-        return User
-}
-async function passHasher(password:string):Promise<string>{
-    return await bcrypt.hash(password,15)
-}
-async function compare(
-    plainPassword: string,
-    hashedPassword: string
-): Promise<boolean> {
-    return bcrypt.compare(
-        plainPassword,
-        hashedPassword
-        
-    );
-}
+
 async function signup(req:Request,res:Response){
     const creds=req.body
     try{
@@ -86,13 +69,7 @@ async function login(req:Request,res:Response){
        return res.status(500).json(`unexpected error`)
      }
 }
-function clearCookie(res:Response){
-res.clearCookie("token",{
-        sameSite:"lax",
-        secure:true,
-        httpOnly:true
-    })
-}
+
 function logout(req:Request,res:Response){
     clearCookie(res)
     return res.status(200).json({

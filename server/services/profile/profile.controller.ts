@@ -1,8 +1,6 @@
 import {Response,Request} from 'express';
 import { pool } from '../db/db.ts';
 import { passHasher,compare, clearCookie} from '../auth/auth.controller.ts';
-import { count } from 'node:console';
-//get user profile
 async function getProfile(req:Request,res:Response){
     if(!req.user){
        return res.status(404).json({message:"user not found"})
@@ -49,6 +47,7 @@ async function changePassword(req:Request,res:Response){
                 const hashedpassword = await passHasher(creds.newpassword)
                 await pool.query("UPDATE users SET password =$1,updated_at =now() WHERE user_id=$2 RETURNING user_id,username,created_at",
                  [hashedpassword,req.user.user_id])
+                 clearCookie(res)
                  return res.status(200).json({message:"password has been changed successfully"})
                 }
             }else{
