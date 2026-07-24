@@ -10,14 +10,12 @@ async function signup(req:Request,res:Response){
           return res.status(400).json('missing credentials')
         }
         const hashedPass = await passHasher(creds.userPass)
-         console.log(creds.userName,hashedPass,creds.userPhoneNumber,creds.userEmail)
         await pool.query(
             "INSERT INTO users(username,password,phone_number,email) VALUES($1,$2,$3,$4)",
             [creds.userName,hashedPass,creds.userPhoneNumber,creds.userEmail]
         )
           return res.status(200).json('success')
     }catch(err){
-        console.log(err)
         return res.status(400).json('unexpected error')
 
     }
@@ -43,7 +41,7 @@ async function login(req:Request,res:Response){
             {
                 expiresIn:'7d'
             })
-            console.log(User.user_id,token)
+
             res.cookie("token",token,{
                 httpOnly:true,
                 secure:true,
@@ -53,14 +51,12 @@ async function login(req:Request,res:Response){
             await pool.query("UPDATE users SET last_activity = now() where username =$1",
                 [User.username]
             )
-            console.log("login func",User)
            return res.status(200).json(`enjoy`)
         }else{
             return res.status(401).json("invalid creds")
         }
     }
         }catch(err){
-        console.log(err)
        return res.status(500).json(`unexpected error`)
      }
 }

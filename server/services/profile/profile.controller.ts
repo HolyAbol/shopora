@@ -67,15 +67,13 @@ if(!req.user){
        return res.status(401).json({message:"not authorized"})
     }
     try{
-const search = await pool.query("SELECT user_id FROM users where user_id=$1 AND deleted_at IS NULL",
+const result = await pool.query("UPDATE users SET deleted_at=now() WHERE user_id=$1 AND deleted_at IS NULL RETURNING user_id",
         [req.user.user_id]
     )
-    if(search.rowCount===0){
+    
+    if(result.rowCount===0){
         return res.status(404).json({message:"user not found"})
     }
-    const result = await pool.query("UPDATE users SET deleted_at=now() WHERE user_id=$1",
-        [req.user.user_id]
-    )
     clearCookie(res)
     return res.status(200).json({message:"goodbye"})
     
@@ -84,5 +82,4 @@ const search = await pool.query("SELECT user_id FROM users where user_id=$1 AND 
     }
     
 }
-
 export{getProfile,changeUsername,changePassword,deleteProfile}

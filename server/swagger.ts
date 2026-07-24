@@ -17,5 +17,4 @@ const options: swaggerJsDoc.Options = {
 const swaggerspec = swaggerJSDoc(options)
 const swaggerDocs=express.Router()
 swaggerDocs.use('/',swaggerUi.serve,swaggerUi.setup(swaggerspec))
-console.log(glob.sync('server/services/auth/auth.router.ts'))
 export default swaggerDocs;
