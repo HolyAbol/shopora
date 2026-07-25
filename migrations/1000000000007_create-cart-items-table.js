@@ -28,4 +28,4 @@ export const up = (pgm) => {pgm.sql(`
  * @param run {() => void | undefined}
  * @returns {Promise<void> | void}
  */
-export const down = (pgm) => {pgm.sql(` DROP TABLE cart items`)};
+export const down = (pgm) => {pgm.sql(` DROP TABLE cart_items`)};

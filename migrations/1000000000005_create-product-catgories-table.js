@@ -26,4 +26,4 @@ export const up = (pgm) => {pgm.sql(`
  * @param run {() => void | undefined}
  * @returns {Promise<void> | void}
  */
-export const down = (pgm) => {};pgm.sql(` DROP TABLE product_categories`)
+export const down = (pgm) => {pgm.sql(` DROP TABLE product_categories`)}
