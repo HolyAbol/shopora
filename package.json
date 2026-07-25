@@ -4,7 +4,10 @@
   "description": "",
   "main": "server.ts",
   "scripts": {
-    "test": "nodemon --exec tsx ./server/server.ts"
+    "test": "nodemon --exec tsx ./server/server.ts",
+    "migrate:up": "node -r dotenv/config node_modules/.bin/node-pg-migrate up",
+    "migrate:down": "node -r dotenv/config node_modules/.bin/node-pg-migrate down",
+    "migrate:create": "node-pg-migrate create"
   },
   "author": "",
   "license": "ISC",
@@ -33,6 +36,7 @@
     "express": "^5.2.1",
     "express-session": "^1.19.0",
     "helmet": "^8.2.0",
+    "node-pg-migrate": "^9.0.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.22.0",
