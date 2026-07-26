@@ -18,12 +18,12 @@ async function signup(req:Request,res:Response){
     }catch(err:any){
          if(err.code=="23505"){
     const fieldMap: Record<string,string> ={
-        users_username_key:"username",
+        users_username_key:"userName",
         users_email_key:"userEmail",
         users_phone_number_key:"userPhoneNumber"
     }
       const field = fieldMap[err.constraint] ?? 'unknown'
-        return res.status(409).json({message:`${field} already exists`}
+        return res.status(409).json({message:`${field} already exists`,field}
 
         )}
         return res.status(500).json({message:'unexpected error'})

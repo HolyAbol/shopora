@@ -2,7 +2,6 @@ import swaggerJsDoc from 'swagger-jsdoc'
 import express from 'express'
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
-import { glob } from 'glob';
 const options: swaggerJsDoc.Options = {
     definition:{
         openapi:'3.0.0',
