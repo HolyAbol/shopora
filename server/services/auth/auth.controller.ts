@@ -14,9 +14,19 @@ async function signup(req:Request,res:Response){
             "INSERT INTO users(username,password,phone_number,email) VALUES($1,$2,$3,$4)",
             [creds.userName,hashedPass,creds.userPhoneNumber,creds.userEmail]
         )
-          return res.status(200).json('success')
-    }catch(err){
-        return res.status(400).json('unexpected error')
+          return res.status(200).json({message:'success'})
+    }catch(err:any){
+         if(err.code=="23505"){
+    const fieldMap: Record<string,string> ={
+        users_username_key:"username",
+        users_email_key:"userEmail",
+        users_phone_number_key:"userPhoneNumber"
+    }
+      const field = fieldMap[err.constraint] ?? 'unknown'
+        return res.status(409).json({message:`${field} already exists`}
+
+        )}
+        return res.status(500).json({message:'unexpected error'})
 
     }
 
@@ -25,13 +35,13 @@ async function login(req:Request,res:Response){
      const creds=req.body
      try{
         if(!creds.userName || !creds.userPass){
-           return res.status(400).json('missing credentials')
+           return res.status(400).json({message:'missing credentials'})
         }
         else{
             const results = await findUser(creds)
             const User=results.rows[0]
          if(!User){
-            return res.status(403).json('invalid creds')
+            return res.status(403).json({message:'invalid creds'})
         }
         const checkPass = await compare(creds.userPass,User.password);
         if(checkPass){
@@ -51,13 +61,13 @@ async function login(req:Request,res:Response){
             await pool.query("UPDATE users SET last_activity = now() where username =$1",
                 [User.username]
             )
-           return res.status(200).json(`enjoy`)
+           return res.status(200).json({message:"enjoy"})
         }else{
-            return res.status(401).json("invalid creds")
+            return res.status(401).json({message:"invalid creds"})
         }
     }
         }catch(err){
-       return res.status(500).json(`unexpected error`)
+       return res.status(500).json({message:"unexpected error"})
      }
 }
 

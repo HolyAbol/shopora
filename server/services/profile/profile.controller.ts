@@ -7,23 +7,54 @@ async function getProfile(req:Request,res:Response){
     }
     return res.status(200).json(req.user)
 }
+async function changeFullname(req:Request,res:Response){
+    interface Fullname{
+        firstname:string,
+        lastname:string
+      }
+      const Fullname =req.body as Fullname                    
+if(!req.user){
+       return res.status(401).json({message:"not authorized"})
+    }
+    try{
+        const result = await pool.query("UPDATE users SET first_name=$1,last_name=$2,updated_at=now() WHERE user_id=$3 RETURNING user_id,first_name,last_name",
+        [Fullname.firstname,Fullname.lastname,req.user.user_id]
+    )
+    if(result.rowCount===0){
+            return res.status(404).json({message:"user not found"})
+        }
+        return res.status(200).json({message:'success'})
+       }
+       catch(err){
+     return res.status(500).json({message:"unexpected error"})
+   }
+    }
+    
 async function changeUsername(req:Request,res:Response){
      if(!req.user){
        return res.status(401).json({message:"not authorized"})
     }
-    const result = await pool.query("UPDATE users SET username =$1, updated_at =now() WHERE user_id=$2 RETURNING user_id,username,created_at",
+    try{
+        const result = await pool.query("UPDATE users SET username =$1, updated_at =now() WHERE user_id=$2 RETURNING user_id,username,created_at",
     
     [req.body.newUsername,req.user.user_id])
         if(result.rowCount===0){
-            return res.status(404).json("user not found")
+            return res.status(404).json({message:"user not found"})
         }
-   return res.status(200).json('success')
+   return res.status(200).json({message:'success'})
    
+   }catch(err:any){
+    if(err.code=="23505"){
+        return res.status(409).json({message:"username already exists"})
+    }
+     return res.status(500).json({message:"unexpected error"})
    }
+}
+    
 async function changePassword(req:Request,res:Response){
     interface creds{
-        oldpassword:string,
-        newpassword:string
+        oldPassword:string,
+        newPassword:string
       }
       const creds = req.body as creds
       try{
@@ -37,16 +68,16 @@ async function changePassword(req:Request,res:Response){
       if(result.rowCount===0){
         return res.status(404).json({message:"user not found"})
       }
-        if(creds.oldpassword && creds.newpassword){
-         const checkstatus = await compare(creds.oldpassword,result.rows[0].password)
+        if(creds.oldPassword && creds.newPassword){
+         const checkStatus = await compare(creds.oldPassword,result.rows[0].password)
 
-        if(checkstatus){
-            if(creds.oldpassword === creds.newpassword){
+        if(checkStatus){
+            if(creds.oldPassword === creds.newPassword){
                return res.status(400).json({message:"new password cant be your current password"})
             }else{
-                const hashedpassword = await passHasher(creds.newpassword)
+                const hashedPassword = await passHasher(creds.newPassword)
                 await pool.query("UPDATE users SET password =$1,updated_at =now() WHERE user_id=$2 RETURNING user_id,username,created_at",
-                 [hashedpassword,req.user.user_id])
+                 [hashedPassword,req.user.user_id])
                  clearCookie(res)
                  return res.status(200).json({message:"password has been changed successfully"})
                 }
@@ -57,7 +88,10 @@ async function changePassword(req:Request,res:Response){
                 return res.status(400).json({message:"fileds must not be empty"})
              }
       
-      }catch{
+      }catch(err:any){
+        if(err.code=="23505"){
+        return res.status(409).json({message:"new password cant be your current password"})
+    }
         return res.status(500).json({message:"unexpected error"})
       }
       
@@ -67,7 +101,7 @@ if(!req.user){
        return res.status(401).json({message:"not authorized"})
     }
     try{
-const result = await pool.query("UPDATE users SET deleted_at=now() WHERE user_id=$1 AND deleted_at IS NULL RETURNING user_id",
+const result = await pool.query("UPDATE users SET deleted_at=now() WHERE user_id=$1 AND deleted_at IS NULL RETURNING user_id,deleted_at",
         [req.user.user_id]
     )
     
@@ -82,4 +116,4 @@ const result = await pool.query("UPDATE users SET deleted_at=now() WHERE user_id
     }
     
 }
-export{getProfile,changeUsername,changePassword,deleteProfile}
+export{getProfile,changeFullname,changeUsername,changePassword,deleteProfile}

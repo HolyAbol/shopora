@@ -1,5 +1,5 @@
 import { loginCheck } from '../auth/auth.middleware.ts';
-import { changePassword, changeUsername, deleteProfile, getProfile } from './profile.controller.ts';
+import { changeFullname, changePassword, changeUsername, deleteProfile, getProfile } from './profile.controller.ts';
 import express from 'express';
 const Profilerouter =express.Router()
 /**
@@ -108,4 +108,5 @@ Profilerouter.put('/change-username',loginCheck,changeUsername)
  *         description: "unexpected error"
  */
 Profilerouter.put('/delete-profile',loginCheck,deleteProfile)
+Profilerouter.put('/change-fullname',loginCheck,changeFullname)
 export{Profilerouter}

@@ -5,10 +5,12 @@
   "main": "server.ts",
   "type": "module",
   "scripts": {
-    "test": "nodemon --exec tsx ./server/server.ts",
+    "dev": "nodemon --exec tsx ./server/server.ts",
     "migrate:up": "node-pg-migrate up",
     "migrate:down": "node-pg-migrate down",
-    "migrate:create": "node-pg-migrate create"
+    "migrate:create": "node-pg-migrate create",
+    "jest":"jest",
+    "jest:watch":"jest --watch"
   },
   "author": "",
   "license": "ISC",
@@ -17,6 +19,7 @@
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
     "@types/node": "^26.0.0",
     "@types/passport-jwt": "^4.0.1",
     "@types/pg": "^8.20.0",
@@ -30,6 +33,7 @@
   },
   "dependencies": {
     "@types/dotenv": "^8.2.3",
+    "@types/supertest": "^7.2.1",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cookie-session": "^2.1.1",
@@ -42,6 +46,7 @@
     "passport-jwt": "^4.0.1",
     "pg": "^8.22.0",
     "swagger-ui-express": "^5.0.1",
+    "ts-jest": "^29.4.12",
     "zod": "^4.4.3"
   }
 }
