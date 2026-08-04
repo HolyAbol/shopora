@@ -93,6 +93,39 @@ Profilerouter.put('/change-password',loginCheck,changePassword)
 Profilerouter.put('/change-username',loginCheck,changeUsername)
 /**
  * @swagger
+ * /v1/api/profile/change-fullname:
+ *   put:
+ *     summary: "change user,s Fullname"
+ *     tags: [Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - firstname 
+ *               - lastname
+ *             properties:
+ *               firstname:
+ *                 type: string
+ *                 example: "example"
+ *               lastname:
+ *                 type: string
+ *                 example: "example"
+ *     responses:
+ *       200:
+ *         description: "success"
+ *       401:
+ *         description: "not authorized"
+ *       500:
+ *         description: "unexpected error"
+ */
+Profilerouter.put('/change-fullname',loginCheck,changeFullname)
+/**
+ * @swagger
  * /v1/api/profile/delete-profile:
  *   put:
  *     summary: "delete user's profile"
@@ -108,5 +141,4 @@ Profilerouter.put('/change-username',loginCheck,changeUsername)
  *         description: "unexpected error"
  */
 Profilerouter.put('/delete-profile',loginCheck,deleteProfile)
-Profilerouter.put('/change-fullname',loginCheck,changeFullname)
 export{Profilerouter}

@@ -2,27 +2,30 @@ import { findUser,passHasher,compare,clearCookie } from './auth.helpers.ts';
 import {Response,Request} from 'express';
 import jwt from 'jsonwebtoken'
 import {pool} from '../db/db.ts'
+import { DatabaseError } from 'pg';
+import { signupSchema } from './auth.schemas.ts';
 
 async function signup(req:Request,res:Response){
-    const creds=req.body
+    const creds=signupSchema.safeParse(req.body)
     try{
-        if(!creds.userName || !creds.userPass || !creds.userEmail || !creds.userPhoneNumber){
+        if(!creds.success){
           return res.status(400).json('missing credentials')
         }
-        const hashedPass = await passHasher(creds.userPass)
+        const {userName,userEmail,userPhoneNumber,userPassword,}= creds.data
+        const hashedPass = await passHasher(userPassword ?? '')
         await pool.query(
             "INSERT INTO users(username,password,phone_number,email) VALUES($1,$2,$3,$4)",
-            [creds.userName,hashedPass,creds.userPhoneNumber,creds.userEmail]
+            [userName,hashedPass,userPhoneNumber,userEmail]
         )
           return res.status(200).json({message:'success'})
-    }catch(err:any){
-         if(err.code=="23505"){
+    }catch(err){
+         if(err instanceof DatabaseError && err.code =="23505"){
     const fieldMap: Record<string,string> ={
         users_username_key:"userName",
         users_email_key:"userEmail",
         users_phone_number_key:"userPhoneNumber"
     }
-      const field = fieldMap[err.constraint] ?? 'unknown'
+      const field = fieldMap[err.constraint ?? ''] ?? 'unknown'
         return res.status(409).json({message:`${field} already exists`,field}
 
         )}
@@ -41,7 +44,7 @@ async function login(req:Request,res:Response){
             const results = await findUser(creds)
             const User=results.rows[0]
          if(!User){
-            return res.status(403).json({message:'invalid creds'})
+            return res.status(401).json({message:'invalid creds'})
         }
         const checkPass = await compare(creds.userPass,User.password);
         if(checkPass){
@@ -66,7 +69,7 @@ async function login(req:Request,res:Response){
             return res.status(401).json({message:"invalid creds"})
         }
     }
-        }catch(err){
+        }catch{
        return res.status(500).json({message:"unexpected error"})
      }
 }

@@ -6,7 +6,7 @@ describe("signup functionality",()=>{
     beforeAll(async()=>{
         await pool.query("SELECT 1")
 .then(()=>console.log('connected to postgresssql'))
-.catch((err:any)=> console.log(err))
+.catch((err:unknown)=> console.log(err))
     })
     const creds ={
         userName:"test1",

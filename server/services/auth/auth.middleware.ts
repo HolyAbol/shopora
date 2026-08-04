@@ -20,7 +20,7 @@ async function loginCheck(req:Request,res:Response,next:NextFunction){
 
    req.user=Result.rows[0]
    next()
-    } catch(err){
+    }catch{
      return res.status(401).json({
         message:"invalid token"
      })

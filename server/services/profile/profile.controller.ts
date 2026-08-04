@@ -1,6 +1,8 @@
 import {Response,Request} from 'express';
 import { pool } from '../db/db.ts';
 import { passHasher,compare, clearCookie} from '../auth/auth.controller.ts';
+import { userInfoSchema } from './profile.schemas.ts';
+
 async function getProfile(req:Request,res:Response){
     if(!req.user){
        return res.status(404).json({message:"user not found"})
@@ -8,24 +10,25 @@ async function getProfile(req:Request,res:Response){
     return res.status(200).json(req.user)
 }
 async function changeFullname(req:Request,res:Response){
-    interface Fullname{
-        firstname:string,
-        lastname:string
-      }
-      const Fullname =req.body as Fullname                    
+           
 if(!req.user){
        return res.status(401).json({message:"not authorized"})
-    }
+}
+const userInfo =userInfoSchema.safeParse(req.body)
+       if(!userInfo.success){
+         return res.status(400).json('missing credentials')
+       }
+    const {firstName,lastName}=userInfo.data
     try{
         const result = await pool.query("UPDATE users SET first_name=$1,last_name=$2,updated_at=now() WHERE user_id=$3 RETURNING user_id,first_name,last_name",
-        [Fullname.firstname,Fullname.lastname,req.user.user_id]
+        [firstName,lastName,req.user.user_id]
     )
     if(result.rowCount===0){
             return res.status(404).json({message:"user not found"})
         }
         return res.status(200).json({message:'success'})
        }
-       catch(err){
+       catch{
      return res.status(500).json({message:"unexpected error"})
    }
     }
@@ -43,8 +46,8 @@ async function changeUsername(req:Request,res:Response){
         }
    return res.status(200).json({message:'success'})
    
-   }catch(err:any){
-    if(err.code=="23505"){
+   }catch(err:unknown){
+    if(err instanceof Error && "code" in err && err.code=="23505"){
         return res.status(409).json({message:"username already exists"})
     }
      return res.status(500).json({message:"unexpected error"})
@@ -88,8 +91,8 @@ async function changePassword(req:Request,res:Response){
                 return res.status(400).json({message:"fileds must not be empty"})
              }
       
-      }catch(err:any){
-        if(err.code=="23505"){
+      }catch(err:unknown){
+        if(err instanceof Error && "code" in err && err.code=="23505"){
         return res.status(409).json({message:"new password cant be your current password"})
     }
         return res.status(500).json({message:"unexpected error"})
