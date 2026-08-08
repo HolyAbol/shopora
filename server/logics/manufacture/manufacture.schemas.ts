@@ -1,11 +1,12 @@
 import z from 'zod';
 export const manufacturersSchema =z.object({
-manufacture_name:z
+manufacturer_id:z.number(),
+manufacturer_name:z
 .string()
 .min(2)
 .max(100)
 .regex(/^[a-zA-Z0-9_]+$/,"only english chars,numbers,_ are allowed"),
-new_manufacture_name:z
+manufacturer_new_name:z
 .string()
 .min(2)
 .max(100)
@@ -14,12 +15,19 @@ country_code:z
 .string()
 .min(2)
 .max(2)
-.regex(/^[A-Z]/,"only english chars are allowed")
+.regex(/^[A-Z]{2}$/,"only uppercase english chars are allowed")
 })
 export const manufactureChangeName = manufacturersSchema.pick({
-    manufacture_name:true,
-    new_manufacture_name:true
+    manufacturer_id:true,
+    manufacturer_new_name:true
 })
 export const manufactureDeletion = manufacturersSchema.pick({
-    manufacture_name:true
+    manufacturer_id:true
+})
+export const manufactureName = manufacturersSchema.pick({
+    manufacturer_id:true
+})
+export const manufactureAdd = manufacturersSchema.pick({
+    manufacturer_name:true,
+    country_code:true
 })
