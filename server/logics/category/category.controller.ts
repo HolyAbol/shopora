@@ -1,8 +1,9 @@
 import {Response,Request} from 'express';
 import { pool } from '../../services/db/db';
 import { DatabaseError } from 'pg';
-import { categoryChange, categorySchema } from './category.schema';
-async function addManu (req:Request,res:Response){
+import { categoryChange, categoryID, categorySchema } from './category.schema';
+import { paginationQuery } from '../shared.schemas';
+async function addcategory (req:Request,res:Response){
     if(!req.user){
       return res.status(401).json({message:"not authorized"})
     }
@@ -53,3 +54,75 @@ async function changecategory(req:Request,res:Response){
   }
     
 }
+
+async function deleteManu(req:Request,res:Response){
+  if(!req.user){
+      return res.status(401).json({message:"not authorized"})
+    }
+    try{
+      const Details = categoryID.safeParse(req.body)
+    if(!Details.success){
+          return res.status(400).json('missing credentials')
+        }
+        const {category_id}=Details.data
+     const existing = await pool.query("UPDATE categories SET updated_at=now(),deleted_at=now() WHERE category_id=$1 AND deleted_at IS NULL RETURNING manufacturer_name",
+      [category_id]
+    )
+      if(existing.rowCount===0){
+        return res.status(404).json({message:"category not found"})
+      }
+      return res.status(200).json({message:"success"})
+  }
+  catch{
+     return res.status(500).json({message:"unexpected error"})
+    }
+  }
+
+  async function getcategory(req:Request,res:Response){
+    if(!req.user){
+      return res.status(401).json({message:"not authorized"})
+    }
+    try{
+        const paginate = paginationQuery.safeParse(req.body)
+        
+      if(!paginate.success){
+            return res.status(400).json('missing credentials')
+          }
+          const {limit,page}= paginate.data
+          const offset = (page-1) * limit ;
+       const existing = await pool.query("SELECT * FROM categories WHERE deleted_at IS NULL ORDER BY category_id LIMIT $1 OFFSET $2",
+        [limit,offset]
+      )
+        if(existing.rowCount===0){
+          return res.status(404).json({message:"categories not found"})
+        }
+        return res.status(200).json({message:"success",data:existing.rows[0]})
+    }
+    catch{
+       return res.status(500).json({message:"unexpected error"})
+      }
+    }
+      
+    async function getCategoryById(req:Request,res:Response){
+      if(!req.user){
+        return res.status(401).json({message:"not authorized"})
+      }
+      try{
+          const Details = categoryID.safeParse(req.body)
+        if(!Details.success){
+              return res.status(400).json('missing credentials')
+            }
+            const {category_id}=Details.data
+         const existing = await pool.query("SELECT * FROM categories WHERE category_id=$1 AND deleted_at IS NULL",
+          [category_id]
+        )
+          if(existing.rowCount===0){
+            return res.status(404).json({message:"manufacture not found"})
+          }
+          return res.status(200).json({message:"success",data:existing.rows[0]})
+      }
+      catch{
+         return res.status(500).json({message:"unexpected error"})
+        }
+      }
+        

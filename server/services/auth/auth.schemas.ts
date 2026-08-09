@@ -9,12 +9,15 @@ export const UserCredsSchema =z.object({
     .max(30,"username should not exceed 30 characters")
     .regex(/^[a-zA-Z0-9_]+$/,"only english chars,numbers,_ are allowed"),
     userEmail: z.email(),
-    userPhoneNumber:z.number(),
+    userPhoneNumber:z
+    .string()
+    .length(11,"phone number must be 11 digits")
+    .regex(/^09\d{9}$/, "invalid Iranian phone number format"),
     userPassword:z
     .string()
     .min(8,"password should be atleast 8 chars long")
-    .regex(/[A-Z]/)
-    .regex(/[0-9]/)
+    .regex(/[a-zA-Z0-9_]/)
+    
 })
 
 export const signupSchema = UserCredsSchema.partial()

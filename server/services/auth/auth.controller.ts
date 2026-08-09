@@ -7,11 +7,13 @@ import { signupSchema } from './auth.schemas.ts';
 
 async function signup(req:Request,res:Response){
     const creds=signupSchema.safeParse(req.body)
+    console.log(req.body,creds.success,creds.error?.issues)
     try{
         if(!creds.success){
           return res.status(400).json('missing credentials')
         }
         const {userName,userEmail,userPhoneNumber,userPassword,}= creds.data
+        console.log(creds.data)
         const hashedPass = await passHasher(userPassword ?? '')
         await pool.query(
             "INSERT INTO users(username,password,phone_number,email) VALUES($1,$2,$3,$4)",

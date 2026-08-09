@@ -14,3 +14,6 @@ export const categoryChange=categorySchema.pick({
     category_name:true,
     category_new_parent_id:true
 })
+export const categoryID=categorySchema.pick({
+    category_id:true
+})

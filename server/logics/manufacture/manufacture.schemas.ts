@@ -24,7 +24,7 @@ export const manufactureChangeName = manufacturersSchema.pick({
 export const manufactureDeletion = manufacturersSchema.pick({
     manufacturer_id:true
 })
-export const manufactureName = manufacturersSchema.pick({
+export const manufactureID = manufacturersSchema.pick({
     manufacturer_id:true
 })
 export const manufactureAdd = manufacturersSchema.pick({

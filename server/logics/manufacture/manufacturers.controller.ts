@@ -1,7 +1,8 @@
 import {Response,Request} from 'express';
 import { pool } from '../../services/db/db';
-import { manufactureChangeName,manufactureDeletion,manufactureAdd,manufactureName} from './manufacture.schemas';
+import { manufactureChangeName,manufactureDeletion,manufactureAdd,manufactureID} from './manufacture.schemas';
 import { DatabaseError } from 'pg';
+import { paginationQuery } from '../shared.schemas';
 
 async function addManu (req:Request,res:Response){
     if(!req.user){
@@ -77,12 +78,12 @@ async function deleteManu(req:Request,res:Response){
   }
     
 
-async function getManu(req:Request,res:Response){
+async function getManuById(req:Request,res:Response){
   if(!req.user){
     return res.status(401).json({message:"not authorized"})
   }
   try{
-      const Details = manufactureName.safeParse(req.body)
+      const Details = manufactureID.safeParse(req.body)
     if(!Details.success){
           return res.status(400).json('missing credentials')
         }
@@ -100,4 +101,28 @@ async function getManu(req:Request,res:Response){
     }
   }
     
-export{addManu,getManu,changeManuName,deleteManu}
+  async function getManu(req:Request,res:Response){
+      if(!req.user){
+        return res.status(401).json({message:"not authorized"})
+      }
+      try{
+          const paginate = paginationQuery.safeParse(req.body)
+          
+        if(!paginate.success){
+              return res.status(400).json('missing credentials')
+            }
+            const {limit,page}= paginate.data
+            const offset = (page-1) * limit ;
+         const existing = await pool.query("SELECT * FROM manufacturers WHERE deleted_at IS NULL ORDER BY category_id LIMIT $1 OFFSET $2",
+          [limit,offset]
+        )
+          if(existing.rowCount===0){
+            return res.status(404).json({message:"manufacturers not found"})
+          }
+          return res.status(200).json({message:"success",data:existing.rows[0]})
+      }
+      catch{
+         return res.status(500).json({message:"unexpected error"})
+        }
+      }
+export{addManu,getManu,getManuById,changeManuName,deleteManu}
