@@ -6,9 +6,10 @@ interface userdb{
     password:string
 }
 
-async function findUser(user:userdb){
+async function findUser(userName:string){
 const User= await pool.query('select * from users where username =$1 AND deleted_at IS NULL',
-        [user.userName])
+        [userName]
+    )
         return User
 }
 async function passHasher(password:string):Promise<string>{

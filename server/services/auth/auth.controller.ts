@@ -3,14 +3,14 @@ import {Response,Request} from 'express';
 import jwt from 'jsonwebtoken'
 import {pool} from '../db/db.ts'
 import { DatabaseError } from 'pg';
-import { signupSchema } from './auth.schemas.ts';
+import { loginSchema, signupSchema } from './auth.schemas.ts';
 
 async function signup(req:Request,res:Response){
     const creds=signupSchema.safeParse(req.body)
     console.log(req.body,creds.success,creds.error?.issues)
     try{
         if(!creds.success){
-          return res.status(400).json('missing credentials')
+          return res.status(400).json({message:'missing credentials'})
         }
         const {userName,userEmail,userPhoneNumber,userPassword,}= creds.data
         console.log(creds.data)
@@ -28,27 +28,28 @@ async function signup(req:Request,res:Response){
         users_phone_number_key:"userPhoneNumber"
     }
       const field = fieldMap[err.constraint ?? ''] ?? 'unknown'
-        return res.status(409).json({message:`${field} already exists`,field}
-
-        )}
+        return res.status(409).json({message:`${field} already exists`,field})
+    }
         return res.status(500).json({message:'unexpected error'})
-
+        
     }
 
 }
 async function login(req:Request,res:Response){
-     const creds=req.body
-     try{
-        if(!creds.userName || !creds.userPass){
-           return res.status(400).json({message:'missing credentials'})
-        }
-        else{
-            const results = await findUser(creds)
+     const creds = loginSchema.safeParse(req.body)
+     if(!creds.success){
+        return res.status(400).json({message:'missing credentials'})
+     }
+     console.log(req.body,creds.success,creds.error?.issues)
+     const {userName,userPassword}=creds.data
+     try
+        {
+            const results = await findUser(userName)
             const User=results.rows[0]
          if(!User){
             return res.status(401).json({message:'invalid creds'})
         }
-        const checkPass = await compare(creds.userPass,User.password);
+        const checkPass = await compare(userPassword,User.password);
         if(checkPass){
             const token = jwt.sign({
                 user_id:User.user_id
@@ -71,10 +72,11 @@ async function login(req:Request,res:Response){
             return res.status(401).json({message:"invalid creds"})
         }
     }
-        }catch{
+        catch{
        return res.status(500).json({message:"unexpected error"})
+        }
      }
-}
+
 
 function logout(req:Request,res:Response){
     clearCookie(res)
