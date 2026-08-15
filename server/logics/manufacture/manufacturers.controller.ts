@@ -59,7 +59,7 @@ async function deleteManu(req:Request,res:Response){
       return res.status(401).json({message:"not authorized"})
     }
     try{
-      const Details = manufactureDeletion.safeParse(req.body)
+      const Details = manufactureDeletion.safeParse(req.params)
     if(!Details.success){
           return res.status(400).json('missing credentials')
         }
@@ -79,11 +79,8 @@ async function deleteManu(req:Request,res:Response){
     
 
 async function getManuById(req:Request,res:Response){
-  if(!req.user){
-    return res.status(401).json({message:"not authorized"})
-  }
   try{
-      const Details = manufactureID.safeParse(req.body)
+      const Details = manufactureID.safeParse(req.params)
     if(!Details.success){
           return res.status(400).json('missing credentials')
         }
@@ -101,10 +98,7 @@ async function getManuById(req:Request,res:Response){
     }
   }
     
-  async function getManu(req:Request,res:Response){
-      if(!req.user){
-        return res.status(401).json({message:"not authorized"})
-      }
+  async function getManus(req:Request,res:Response){
       try{
           const paginate = paginationQuery.safeParse(req.body)
           
@@ -125,4 +119,4 @@ async function getManuById(req:Request,res:Response){
          return res.status(500).json({message:"unexpected error"})
         }
       }
-export{addManu,getManu,getManuById,changeManuName,deleteManu}
+export{addManu,getManus,getManuById,changeManuName,deleteManu}

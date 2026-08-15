@@ -1,6 +1,6 @@
 import {Response,Request} from 'express';
 import { pool } from '../db/db.ts';
-import { passHasher,compare, clearCookie} from '../auth/auth.controller.ts';
+import { passHasher,compare, clearCookie} from '../auth/auth.helpers.ts';
 import { userInfoSchema } from './profile.schemas.ts';
 
 async function getProfile(req:Request,res:Response){

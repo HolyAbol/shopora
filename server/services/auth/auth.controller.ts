@@ -7,7 +7,6 @@ import { loginSchema, signupSchema } from './auth.schemas.ts';
 
 async function signup(req:Request,res:Response){
     const creds=signupSchema.safeParse(req.body)
-    console.log(req.body,creds.success,creds.error?.issues)
     try{
         if(!creds.success){
           return res.status(400).json({message:'missing credentials'})
@@ -37,10 +36,10 @@ async function signup(req:Request,res:Response){
 }
 async function login(req:Request,res:Response){
      const creds = loginSchema.safeParse(req.body)
+     console.log(req.body,creds.success,creds.error?.issues)
      if(!creds.success){
         return res.status(400).json({message:'missing credentials'})
      }
-     console.log(req.body,creds.success,creds.error?.issues)
      const {userName,userPassword}=creds.data
      try
         {
@@ -84,4 +83,4 @@ function logout(req:Request,res:Response){
         message:"logged out"
     })
 }
-export {signup,login,logout,passHasher,compare,clearCookie}
+export {signup,login,logout}

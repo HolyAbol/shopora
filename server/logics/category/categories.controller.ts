@@ -1,9 +1,9 @@
 import {Response,Request} from 'express';
 import { pool } from '../../services/db/db';
 import { DatabaseError } from 'pg';
-import { categoryChange, categoryID, categorySchema } from './category.schema';
+import { categoryChange, categoryID, categorySchema } from './categories.schema';
 import { paginationQuery } from '../shared.schemas';
-async function addcategory (req:Request,res:Response){
+async function addCategory (req:Request,res:Response){
     if(!req.user){
       return res.status(401).json({message:"not authorized"})
     }
@@ -28,7 +28,7 @@ async function addcategory (req:Request,res:Response){
 
 }
 
-async function changecategory(req:Request,res:Response){
+async function changeCategory(req:Request,res:Response){
   if(!req.user){
       return res.status(401).json({message:"not authorized"})
     }
@@ -55,12 +55,12 @@ async function changecategory(req:Request,res:Response){
     
 }
 
-async function deleteManu(req:Request,res:Response){
+async function deleteCategory(req:Request,res:Response){
   if(!req.user){
       return res.status(401).json({message:"not authorized"})
     }
     try{
-      const Details = categoryID.safeParse(req.body)
+      const Details = categoryID.safeParse(req.params)
     if(!Details.success){
           return res.status(400).json('missing credentials')
         }
@@ -78,7 +78,7 @@ async function deleteManu(req:Request,res:Response){
     }
   }
 
-  async function getcategory(req:Request,res:Response){
+  async function getCategories(req:Request,res:Response){
     if(!req.user){
       return res.status(401).json({message:"not authorized"})
     }
@@ -108,7 +108,7 @@ async function deleteManu(req:Request,res:Response){
         return res.status(401).json({message:"not authorized"})
       }
       try{
-          const Details = categoryID.safeParse(req.body)
+          const Details = categoryID.safeParse(req.params)
         if(!Details.success){
               return res.status(400).json('missing credentials')
             }
@@ -126,3 +126,6 @@ async function deleteManu(req:Request,res:Response){
         }
       }
         
+
+
+export {addCategory,getCategoryById,getCategories,changeCategory,deleteCategory}

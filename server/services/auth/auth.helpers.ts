@@ -1,10 +1,6 @@
 import bcrypt from 'bcrypt'
 import {Response} from 'express';
 import {pool} from '../db/db.ts'
-interface userdb{
-    userName:string,
-    password:string
-}
 
 async function findUser(userName:string){
 const User= await pool.query('select * from users where username =$1 AND deleted_at IS NULL',
@@ -32,4 +28,4 @@ res.clearCookie("token",{
         httpOnly:true
     })
 }
-export{findUser,clearCookie,compare,passHasher,userdb}
+export{findUser,clearCookie,compare,passHasher}
