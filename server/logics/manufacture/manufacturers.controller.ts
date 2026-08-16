@@ -79,7 +79,6 @@ async function deleteManus(req:Request,res:Response){
     
 
 async function getManusById(req:Request,res:Response){
-  console.log("afdfd")
   try{
       const Details = manufactureID.safeParse(req.params)
       console.log(Details.error?.issues)

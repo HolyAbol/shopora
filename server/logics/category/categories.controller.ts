@@ -40,6 +40,11 @@ async function changeCategory(req:Request,res:Response){
           return res.status(400).json('missing credentials')
         }
         const {category_id,category_name,category_new_parent_id}=Details.data
+
+      if(Details.data.category_new_parent_id=== Details.data.category_id){
+        return res.status(400).json({message:"new parent id cant be the same as category id"})
+      }
+
     const existing = await pool.query("UPDATE categories SET category_parent_id=$1 , category_name=$2 , updated_at=now() WHERE category_id=$3 AND deleted_at IS NULL RETURNING category_id,category_name,category_parent_id ",
       [category_new_parent_id,category_name,category_id]
     )
@@ -52,6 +57,10 @@ async function changeCategory(req:Request,res:Response){
     console.log(err)
       if(err instanceof DatabaseError && err.code =="23505"){
         return res.status(409).json({message:"category name already exists"})
+    }else{
+       if(err instanceof DatabaseError && err.code =="23503"){
+        return res.status(409).json({message:"new parent category does not exist"})
+    }
     }
     return res.status(500).json({message:"unexpected error"})
   }
@@ -126,7 +135,7 @@ async function deleteCategory(req:Request,res:Response){
           [category_id]
         )
           if(existing.rowCount===0){
-            return res.status(404).json({message:"manufacture not found"})
+            return res.status(404).json({message:"category not found"})
           }
           return res.status(200).json({message:"success",data:existing.rows[0]})
       }

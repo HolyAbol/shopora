@@ -11,14 +11,14 @@ await pool.connect()
 .then(()=>console.log('connected to postgresssql'))
 .catch((err)=> console.log(err))
 const PORT=process.env.PORT|| 8080;
-const testServer =http.createServer(app)
-testServer.listen(3001,()=>{
-    console.log(3001)
-})
-// const server =https.createServer({
-//     key:fs.readFileSync(path.join(__dirname,'./certs', 'key.pem')),
-//     cert:fs.readFileSync(path.join(__dirname,'./certs', 'cert.pem'))
-// },app)
-// server.listen(PORT,()=>{
-//     console.log(PORT)
+// const testServer =http.createServer(app)
+// testServer.listen(3001,()=>{
+//     console.log(3001)
 // })
+const server =https.createServer({
+    key:fs.readFileSync(path.join(__dirname,'./certs', 'key.pem')),
+    cert:fs.readFileSync(path.join(__dirname,'./certs', 'cert.pem'))
+},app)
+server.listen(PORT,()=>{
+    console.log(PORT)
+})

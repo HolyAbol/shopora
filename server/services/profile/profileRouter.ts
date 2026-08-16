@@ -1,18 +1,19 @@
 import { loginCheck } from '../auth/auth.middleware.ts';
 import { changeFullname, changePassword, changeUsername, deleteProfile, getProfile } from './profile.controller.ts';
 import express from 'express';
-const Profilerouter =express.Router()
+const Profilerouter = express.Router()
+
 /**
- * @swagger
- * /v1/api/profile/profile:
+ * @openapi
+ * /v1/api/profiles/profile:
  *   get:
- *     summary: "user's profile"
+ *     summary: Get the current user's profile
  *     tags: [Profile]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     responses:
  *       200:
- *         description: "heres your profile"
+ *         description: Profile retrieved successfully
  *         content:
  *           application/json:
  *             schema:
@@ -23,24 +24,25 @@ const Profilerouter =express.Router()
  *                   example: "1"
  *                 email:
  *                   type: string
- *                   example: "user@example.com"
+ *                   example: user@example.com
  *                 username:
  *                   type: string
- *                   example: "example"
+ *                   example: example
  *       401:
- *         description: "invalid or non existent Token"
+ *         description: Invalid or non-existent token
  *       404:
- *         description: "user not found"
+ *         description: User not found
  */
-Profilerouter.get('/profile',loginCheck,getProfile)
+Profilerouter.get('/profile', loginCheck, getProfile)
+
 /**
- * @swagger
- * /v1/api/profile/change-password:
+ * @openapi
+ * /v1/api/profiles/change-password:
  *   put:
- *     summary: "change user's password"
+ *     summary: Change the current user's password
  *     tags: [Profile]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -48,28 +50,39 @@ Profilerouter.get('/profile',loginCheck,getProfile)
  *           schema:
  *             type: object
  *             required:
- *               - newpassword
+ *               - oldPassword
+ *               - newPassword
  *             properties:
- *               newpassword:
+ *               oldPassword:
  *                 type: string
- *                 example: "example"
+ *                 minLength: 8
+ *                 example: oldSecurePass1
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 8
+ *                 example: newSecurePass1
  *     responses:
  *       200:
- *         description: "passwords's changed"
+ *         description: Password changed successfully
+ *       400:
+ *         description: Missing/invalid fields, passwords don't match, or new password same as old
  *       401:
- *         description: "not authorized"
+ *         description: Not authorized
+ *       404:
+ *         description: User not found
  *       500:
- *         description: "unexpected error"
+ *         description: Unexpected error
  */
-Profilerouter.put('/change-password',loginCheck,changePassword)
+Profilerouter.put('/change-password', loginCheck, changePassword)
+
 /**
- * @swagger
- * /v1/api/profile/change-username:
+ * @openapi
+ * /v1/api/profiles/change-username:
  *   put:
- *     summary: "change user's username"
+ *     summary: Change the current user's username
  *     tags: [Profile]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -77,28 +90,38 @@ Profilerouter.put('/change-password',loginCheck,changePassword)
  *           schema:
  *             type: object
  *             required:
- *               - newusername
+ *               - newUsername
  *             properties:
- *               newusername:
+ *               newUsername:
  *                 type: string
- *                 example: "example"
+ *                 minLength: 3
+ *                 maxLength: 30
+ *                 pattern: '^[a-zA-Z0-9_]+$'
+ *                 example: newUsername123
  *     responses:
  *       200:
- *         description: "username's changed"
+ *         description: Username changed successfully
+ *       400:
+ *         description: Missing or invalid fields
  *       401:
- *         description: "not authorized"
+ *         description: Not authorized
+ *       404:
+ *         description: User not found
+ *       409:
+ *         description: Username already exists
  *       500:
- *         description: "unexpected error"
+ *         description: Unexpected error
  */
-Profilerouter.put('/change-username',loginCheck,changeUsername)
+Profilerouter.put('/change-username', loginCheck, changeUsername)
+
 /**
- * @swagger
- * /v1/api/profile/change-fullname:
+ * @openapi
+ * /v1/api/profiles/change-fullname:
  *   put:
- *     summary: "change user,s Fullname"
+ *     summary: Change the current user's full name
  *     tags: [Profile]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -106,39 +129,51 @@ Profilerouter.put('/change-username',loginCheck,changeUsername)
  *           schema:
  *             type: object
  *             required:
- *               - firstname 
- *               - lastname
+ *               - firstName
+ *               - lastName
  *             properties:
- *               firstname:
+ *               firstName:
  *                 type: string
- *                 example: "example"
- *               lastname:
+ *                 minLength: 3
+ *                 maxLength: 20
+ *                 example: Ali
+ *               lastName:
  *                 type: string
- *                 example: "example"
+ *                 minLength: 3
+ *                 maxLength: 20
+ *                 example: Rezaei
  *     responses:
  *       200:
- *         description: "success"
+ *         description: Full name changed successfully
+ *       400:
+ *         description: Missing or invalid fields
  *       401:
- *         description: "not authorized"
+ *         description: Not authorized
+ *       404:
+ *         description: User not found
  *       500:
- *         description: "unexpected error"
+ *         description: Unexpected error
  */
-Profilerouter.put('/change-fullname',loginCheck,changeFullname)
+Profilerouter.put('/change-fullname', loginCheck, changeFullname)
+
 /**
- * @swagger
- * /v1/api/profile/delete-profile:
- *   put:
- *     summary: "delete user's profile"
+ * @openapi
+ * /v1/api/profiles/delete-profile:
+ *   delete:
+ *     summary: Delete the current user's profile
  *     tags: [Profile]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     responses:
  *       200:
- *         description: "goodbye"
+ *         description: Profile deleted successfully
  *       401:
- *         description: "not authorized"
+ *         description: Not authorized
+ *       404:
+ *         description: User not found
  *       500:
- *         description: "unexpected error"
+ *         description: Unexpected error
  */
-Profilerouter.put('/delete-profile',loginCheck,deleteProfile)
-export{Profilerouter}
+Profilerouter.delete('/delete-profile', loginCheck, deleteProfile)
+
+export { Profilerouter }

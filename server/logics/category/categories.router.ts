@@ -6,12 +6,12 @@ const categoriesRouter = express.Router()
 
 /**
  * @openapi
- * /add-cats:
+ * /v1/api/cats/add-cats:
  *   post:
  *     summary: Create a new category
  *     tags: [Categories]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -47,9 +47,9 @@ categoriesRouter.post('/add-cats',loginCheck,addCategory)
 
 /**
  * @openapi
- * /get-cats/{category_id}:
+ * /v1/api/cats/get-cats/{category_id}:
  *   get:
- *     summary: Get a single category by id
+ *     summary: Get a single c/v1/api/catsategory by id
  *     tags: [Categories]
  *     parameters:
  *       - in: path
@@ -72,7 +72,7 @@ categoriesRouter.get('/get-cats/:category_id',getCategoryById)
 
 /**
  * @openapi
- * /get-cats:
+ * /v1/api/cats/get-cats:
  *   get:
  *     summary: Get a paginated list of categories
  *     tags: [Categories]
@@ -103,12 +103,12 @@ categoriesRouter.get('/get-cats',getCategories)
 
 /**
  * @openapi
- * /change-cats:
+ * /v1/api/cats/change-cats:
  *   put:
  *     summary: Update a category's name and/or parent
  *     tags: [Categories]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -145,7 +145,8 @@ categoriesRouter.get('/get-cats',getCategories)
  *       401:
  *         description: Not authorized
  *       404:
- *         description: Category not found *       409:
+ *         description: Category not found *      
+ *       409:
  *         description: Category name already exists
  *       500:
  *         description: Unexpected error
@@ -154,12 +155,12 @@ categoriesRouter.put('/change-cats',loginCheck,changeCategory)
 
 /**
  * @openapi
- * /delete-cats/{category_id}:
+ * /v1/api/cats/delete-cats/{category_id}:
  *   delete:
  *     summary: Soft-delete a category (fails if it has active children)
  *     tags: [Categories]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: category_id

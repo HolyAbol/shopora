@@ -3,12 +3,13 @@ import { signup,login,logout} from "./auth.controller.ts";
 import { loginCheck } from "./auth.middleware.ts";
 
 const Authrouter=express.Router()
+
 /**
- * @swagger
+ * @openapi
  * /v1/api/auth/signup:
  *   post:
- *     summary: user sign's up
- *     tags: [Signup]
+ *     summary: Register a new user
+ *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -21,33 +22,42 @@ const Authrouter=express.Router()
  *               - phonenumber
  *               - email
  *             properties:
- *               email:
+ *               userName:
  *                 type: string
- *                 example: "user@example.com"
- *               password:
+ *                 minLength: 3
+ *                 maxLength: 30
+ *                 pattern: '^[a-zA-Z0-9_]+$'
+ *                 example: maninthed
+ *               userEmail:
  *                 type: string
- *                 example: "123456"
- *               phonenumber:
+ *                 format: email
+ *                 example: user@example.com
+ *               userPhoneNumber:
  *                 type: string
+ *                 pattern: '^09\d{9}$'
  *                 example: "09123456789"
- *               username:
+ *               userPassword:
  *                 type: string
- *                 example: example
+ *                 minLength: 8
+ *                 example: "123456ab"
  *     responses:
  *       200:
- *         description: signed up successfully
+ *         description: Signed up successfully
  *       400:
- *         description: fields shouldn't be empty
+ *         description: Missing or invalid fields
+ *       409:
+ *         description: Username, email, or phone number already exists
  *       500:
- *         description: unexpected error
+ *         description: Unexpected error
  */
 Authrouter.post('/signup',signup)
+
 /**
- * @swagger
+ * @openapi
  * /v1/api/auth/login:
  *   post:
- *     summary: user logins
- *     tags: [Login]
+ *     summary: Log in a user
+ *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -58,38 +68,40 @@ Authrouter.post('/signup',signup)
  *               - username
  *               - password
  *             properties:
- *               username:
+ *               userName:
  *                 type: string
- *                 example: "maninthed"
- *               password:
+ *                 example: maninthed
+ *               userPassword:
  *                 type: string
- *                 example: "123456"
+ *                 example: "123456ab"
  *     responses:
  *       200:
- *         description: logged in 
+ *         description: Logged in successfully
  *       400:
- *         description: fields shouldn't be empty
- *       403:
- *         description: wrong credentials
+ *         description: Missing or invalid fields
+ *       401:
+ *         description: Invalid credentials
  *       500:
- *         description: unexpected error
+ *         description: Unexpected error
  */
 Authrouter.post('/login',login)
+
 /**
- * @swagger
+ * @openapi
  * /v1/api/auth/logout:
  *   post:
- *     summary: "user's logs out"
- *     tags: [Logout]
+ *     summary: Log out the current user
+ *     tags: [Auth]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     responses:
  *       200:
- *         description: "bye bye"
+ *         description: Logged out successfully
  *       401:
- *         description: "invalid or non existent Token"
+ *         description: Invalid or non-existent token
  *       500:
- *         description: unexpected error
+ *         description: Unexpected error
  */
 Authrouter.post('/logout',loginCheck,logout)
+
 export {Authrouter}

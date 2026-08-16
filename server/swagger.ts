@@ -2,18 +2,29 @@ import swaggerJsDoc from 'swagger-jsdoc'
 import express from 'express'
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
+
 const options: swaggerJsDoc.Options = {
-    definition:{
-        openapi:'3.0.0',
-        info:{
-            title:'Shopora',
-            version:'1.0.0',
-        },
-        servers:[{url:'https://localhost:8080'}], 
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Shopora',
+      version: '1.0.0',
     },
-    apis:['server/**/*.ts']
+    servers: [{ url: 'https://localhost:8080' }],
+    components: {
+      securitySchemes: {
+        cookieAuth: {
+          type: 'apiKey',
+          in: 'cookie',
+          name: 'token'
+        }
+      }
+    }
+  },
+  apis: ['server/**/*.ts']
 }
+
 const swaggerspec = swaggerJSDoc(options)
-const swaggerDocs=express.Router()
-swaggerDocs.use('/',swaggerUi.serve,swaggerUi.setup(swaggerspec))
+const swaggerDocs = express.Router()
+swaggerDocs.use('/', swaggerUi.serve, swaggerUi.setup(swaggerspec))
 export default swaggerDocs;

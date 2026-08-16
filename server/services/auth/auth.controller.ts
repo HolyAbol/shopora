@@ -20,6 +20,7 @@ async function signup(req:Request,res:Response){
         )
           return res.status(200).json({message:'success'})
     }catch(err){
+        console.log(err)
          if(err instanceof DatabaseError && err.code =="23505"){
     const fieldMap: Record<string,string> ={
         users_username_key:"userName",
@@ -30,7 +31,6 @@ async function signup(req:Request,res:Response){
         return res.status(409).json({message:`${field} already exists`,field})
     }
         return res.status(500).json({message:'unexpected error'})
-        
     }
 
 }
@@ -63,6 +63,7 @@ async function login(req:Request,res:Response){
                 sameSite:"lax",
                 maxAge:7*24*60*60*1000
             })
+            console.log(token)
             await pool.query("UPDATE users SET last_activity = now() where username =$1",
                 [User.username]
             )
