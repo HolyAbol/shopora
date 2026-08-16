@@ -4,7 +4,7 @@ import { manufactureChangeName,manufactureDeletion,manufactureAdd,manufactureID}
 import { DatabaseError } from 'pg';
 import { paginationQuery } from '../shared.schemas';
 
-async function addManu (req:Request,res:Response){
+async function addManus (req:Request,res:Response){
     if(!req.user){
       return res.status(401).json({message:"not authorized"})
     }
@@ -28,7 +28,7 @@ async function addManu (req:Request,res:Response){
     
 
 }
-async function changeManuName(req:Request,res:Response){
+async function changeManusName(req:Request,res:Response){
   if(!req.user){
       return res.status(401).json({message:"not authorized"})
     }
@@ -54,7 +54,7 @@ async function changeManuName(req:Request,res:Response){
   }
     
 }
-async function deleteManu(req:Request,res:Response){
+async function deleteManus(req:Request,res:Response){
   if(!req.user){
       return res.status(401).json({message:"not authorized"})
     }
@@ -78,12 +78,15 @@ async function deleteManu(req:Request,res:Response){
   }
     
 
-async function getManuById(req:Request,res:Response){
+async function getManusById(req:Request,res:Response){
+  console.log("afdfd")
   try{
       const Details = manufactureID.safeParse(req.params)
+      console.log(Details.error?.issues)
     if(!Details.success){
           return res.status(400).json('missing credentials')
         }
+        console.log(Details.data)
         const {manufacturer_id}=Details.data
      const existing = await pool.query("SELECT * FROM manufacturers WHERE manufacturer_id=$1 AND deleted_at IS NULL",
       [manufacturer_id]
@@ -93,30 +96,33 @@ async function getManuById(req:Request,res:Response){
       }
       return res.status(200).json({message:"success",data:existing.rows[0]})
   }
-  catch{
-     return res.status(500).json({message:"unexpected error"})
+  catch(err){
+     return res.status(500).json(err)
     }
   }
     
   async function getManus(req:Request,res:Response){
       try{
-          const paginate = paginationQuery.safeParse(req.body)
-          
+          const paginate = paginationQuery.safeParse(req.query)
+          console.log(paginate.error?.issues)
+          console.log(paginate.data)
         if(!paginate.success){
               return res.status(400).json('missing credentials')
             }
             const {limit,page}= paginate.data
             const offset = (page-1) * limit ;
-         const existing = await pool.query("SELECT * FROM manufacturers WHERE deleted_at IS NULL ORDER BY category_id LIMIT $1 OFFSET $2",
+            
+         const existing = await pool.query("SELECT * FROM manufacturers WHERE deleted_at IS NULL ORDER BY manufacturer_id LIMIT $1 OFFSET $2",
           [limit,offset]
         )
           if(existing.rowCount===0){
             return res.status(404).json({message:"manufacturers not found"})
           }
-          return res.status(200).json({message:"success",data:existing.rows[0]})
+          return res.status(200).json({message:"success",data:existing.rows})
       }
-      catch{
+      catch(err){
+        console.log(err)
          return res.status(500).json({message:"unexpected error"})
         }
       }
-export{addManu,getManus,getManuById,changeManuName,deleteManu}
+export{addManus,getManus,getManusById,changeManusName,deleteManus}

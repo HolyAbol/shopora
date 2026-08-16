@@ -11,7 +11,7 @@ export const shorthands = undefined;
 export const up = (pgm) => {pgm.sql(`
     CREATE TABLE categories (
     category_id           SERIAL,
-    category_name         VARCHAR(50),
+    category_name         VARCHAR(50) NOT NULL UNIQUE,
     category_parent_id    INT,
     created_at             TIMESTAMP    DEFAULT NOW(),
     updated_at             TIMESTAMP,

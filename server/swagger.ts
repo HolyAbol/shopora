@@ -11,7 +11,7 @@ const options: swaggerJsDoc.Options = {
         },
         servers:[{url:'https://localhost:8080'}], 
     },
-    apis:['server/services/**/*.ts']
+    apis:['server/**/*.ts']
 }
 const swaggerspec = swaggerJSDoc(options)
 const swaggerDocs=express.Router()

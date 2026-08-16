@@ -1,14 +1,15 @@
 import {Response,Request} from 'express';
 import { pool } from '../../services/db/db';
 import { DatabaseError } from 'pg';
-import { categoryChange, categoryID, categorySchema } from './categories.schema';
+import { addCategorySchema, categoryChange, categoryID } from './categories.schema';
 import { paginationQuery } from '../shared.schemas';
 async function addCategory (req:Request,res:Response){
     if(!req.user){
       return res.status(401).json({message:"not authorized"})
     }
     try{
-      const Details = categorySchema.safeParse(req.body)
+      const Details = addCategorySchema.safeParse(req.body)
+      console.log(Details.error?.issues)
     if(!Details.success){
           return res.status(400).json('missing credentials')
         }
@@ -19,6 +20,7 @@ async function addCategory (req:Request,res:Response){
       return res.status(200).json({message:'success'})
   }
   catch(err){
+    console.log(err)
       if(err instanceof DatabaseError && err.code =="23505"){
         return res.status(409).json({message:"category already exists"})
     }
@@ -47,6 +49,7 @@ async function changeCategory(req:Request,res:Response){
       return res.status(200).json({message:"success",data:existing.rows[0]})
   }
   catch(err){
+    console.log(err)
       if(err instanceof DatabaseError && err.code =="23505"){
         return res.status(409).json({message:"category name already exists"})
     }
@@ -64,26 +67,35 @@ async function deleteCategory(req:Request,res:Response){
     if(!Details.success){
           return res.status(400).json('missing credentials')
         }
-        const {category_id}=Details.data
-     const existing = await pool.query("UPDATE categories SET updated_at=now(),deleted_at=now() WHERE category_id=$1 AND deleted_at IS NULL RETURNING manufacturer_name",
+     const {category_id}=Details.data
+
+        const childCheck = await pool.query(
+          "SELECT category_id FROM categories WHERE category_parent_id=$1 AND deleted_at IS NULL LIMIT 1",
+          [category_id]
+        )
+
+        if(childCheck.rowCount! > 0){
+          return res.status(409).json({message:"category has active children"})
+        }
+
+     const existing = await pool.query("UPDATE categories SET updated_at=now(),deleted_at=now() WHERE category_id=$1 AND deleted_at IS NULL RETURNING category_name",
       [category_id]
     )
+
       if(existing.rowCount===0){
         return res.status(404).json({message:"category not found"})
       }
       return res.status(200).json({message:"success"})
   }
-  catch{
+  catch(err){
+    console.log(err)
      return res.status(500).json({message:"unexpected error"})
     }
   }
 
   async function getCategories(req:Request,res:Response){
-    if(!req.user){
-      return res.status(401).json({message:"not authorized"})
-    }
     try{
-        const paginate = paginationQuery.safeParse(req.body)
+        const paginate = paginationQuery.safeParse(req.query)
         
       if(!paginate.success){
             return res.status(400).json('missing credentials')
@@ -96,7 +108,7 @@ async function deleteCategory(req:Request,res:Response){
         if(existing.rowCount===0){
           return res.status(404).json({message:"categories not found"})
         }
-        return res.status(200).json({message:"success",data:existing.rows[0]})
+        return res.status(200).json({message:"success",data:existing.rows})
     }
     catch{
        return res.status(500).json({message:"unexpected error"})
@@ -104,9 +116,6 @@ async function deleteCategory(req:Request,res:Response){
     }
       
     async function getCategoryById(req:Request,res:Response){
-      if(!req.user){
-        return res.status(401).json({message:"not authorized"})
-      }
       try{
           const Details = categoryID.safeParse(req.params)
         if(!Details.success){

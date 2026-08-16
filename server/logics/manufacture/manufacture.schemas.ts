@@ -1,6 +1,6 @@
 import z from 'zod';
 export const manufacturersSchema =z.object({
-manufacturer_id:z.number(),
+manufacturer_id:z.coerce.number(),
 manufacturer_name:z
 .string()
 .min(2)
