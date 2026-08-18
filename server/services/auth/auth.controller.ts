@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 import {pool} from '../db/db.ts'
 import { DatabaseError } from 'pg';
 import { loginSchema, signupSchema } from './auth.schemas.ts';
+import { error } from 'node:console';
 
 async function signup(req:Request,res:Response){
     const creds=signupSchema.safeParse(req.body)
@@ -11,7 +12,7 @@ async function signup(req:Request,res:Response){
         if(!creds.success){
           return res.status(400).json({message:'missing credentials'})
         }
-        const {userName,userEmail,userPhoneNumber,userPassword,}= creds.data
+        const {userName,userEmail,userPhoneNumber,userPassword}= creds.data
         console.log(creds.data)
         const hashedPass = await passHasher(userPassword ?? '')
         await pool.query(
@@ -41,14 +42,17 @@ async function login(req:Request,res:Response){
         return res.status(400).json({message:'missing credentials'})
      }
      const {userName,userPassword}=creds.data
+     console.log(userName,userPassword)
      try
         {
             const results = await findUser(userName)
             const User=results.rows[0]
          if(!User){
+            
             return res.status(401).json({message:'invalid creds'})
         }
         const checkPass = await compare(userPassword,User.password);
+        console.log(checkPass)
         if(checkPass){
             const token = jwt.sign({
                 user_id:User.user_id
@@ -69,6 +73,7 @@ async function login(req:Request,res:Response){
             )
            return res.status(200).json({message:"enjoy"})
         }else{
+            console.log("AJHD")
             return res.status(401).json({message:"invalid creds"})
         }
     }

@@ -20,7 +20,7 @@ export const UserCredsSchema =z.object({
     
 })
 
-export const signupSchema = UserCredsSchema.partial()
+export const signupSchema = UserCredsSchema
 export const loginSchema = UserCredsSchema.pick({
     userName:true,
     userPassword:true

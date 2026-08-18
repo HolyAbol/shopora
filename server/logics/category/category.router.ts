@@ -1,5 +1,5 @@
 import express from "express";
-import{addCategory,getCategoryById,getCategories,changeCategory,deleteCategory} from './categories.controller'
+import{addCategory,getCategoryById,getCategories,changeCategory,deleteCategory} from './category.controller'
 import { loginCheck } from "../../services/auth/auth.middleware";
 
 const categoriesRouter = express.Router()

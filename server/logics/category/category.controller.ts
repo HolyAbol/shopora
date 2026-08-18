@@ -1,7 +1,7 @@
 import {Response,Request} from 'express';
 import { pool } from '../../services/db/db';
 import { DatabaseError } from 'pg';
-import { addCategorySchema, categoryChange, categoryID } from './categories.schema';
+import { addCategorySchema, categoryChange, categoryID } from './category.schema';
 import { paginationQuery } from '../shared.schemas';
 async function addCategory (req:Request,res:Response){
     if(!req.user){
