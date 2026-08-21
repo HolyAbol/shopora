@@ -19,7 +19,7 @@ async function signup(req:Request,res:Response){
             "INSERT INTO users(username,password,phone_number,email) VALUES($1,$2,$3,$4)",
             [userName,hashedPass,userPhoneNumber,userEmail]
         )
-          return res.status(200).json({message:'success'})
+          return res.status(201).json({message:'success'})
     }catch(err){
         console.log(err)
          if(err instanceof DatabaseError && err.code =="23505"){

@@ -17,7 +17,7 @@ async function addCategory (req:Request,res:Response){
      await pool.query("INSERT INTO categories(category_name,category_parent_id,created_at,updated_at) VALUES ($1,$2,now(),now()) ",
       [category_name,category_parent_id]
     )
-      return res.status(200).json({message:'success'})
+      return res.status(201).json({message:'success'})
   }
   catch(err){
     console.log(err)

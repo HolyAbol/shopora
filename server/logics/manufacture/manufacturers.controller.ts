@@ -17,7 +17,7 @@ async function addManus (req:Request,res:Response){
      await pool.query("INSERT INTO manufacturers(manufacturer_name,country_code,created_at,updated_at) VALUES ($1,$2,now(),now()) ",
       [manufacturer_name,country_code]
     )
-      return res.status(200).json({message:'success'})
+      return res.status(201).json({message:'success'})
   }
   catch(err){
       if(err instanceof DatabaseError && err.code =="23505"){
