@@ -2,7 +2,9 @@ import express from "express";
 import{addCategory,getCategoryById,getCategories,changeCategory,deleteCategory} from './category.controller'
 import { loginCheck } from "../../services/auth/auth.middleware";
 
+
 const categoriesRouter = express.Router()
+
 
 /**
  * @openapi
@@ -45,11 +47,12 @@ const categoriesRouter = express.Router()
  */
 categoriesRouter.post('/add-cats',loginCheck,addCategory)
 
+
 /**
  * @openapi
  * /v1/api/cats/get-cats/{category_id}:
  *   get:
- *     summary: Get a single c/v1/api/catsategory by id
+ *     summary: Get a single category by id
  *     tags: [Categories]
  *     parameters:
  *       - in: path
@@ -69,6 +72,7 @@ categoriesRouter.post('/add-cats',loginCheck,addCategory)
  *         description: Unexpected error
  */
 categoriesRouter.get('/get-cats/:category_id',getCategoryById)
+
 
 /**
  * @openapi
@@ -100,6 +104,7 @@ categoriesRouter.get('/get-cats/:category_id',getCategoryById)
  *         description: Unexpected error
  */
 categoriesRouter.get('/get-cats',getCategories)
+
 
 /**
  * @openapi
@@ -145,13 +150,14 @@ categoriesRouter.get('/get-cats',getCategories)
  *       401:
  *         description: Not authorized
  *       404:
- *         description: Category not found *      
+ *         description: Category not found
  *       409:
  *         description: Category name already exists
  *       500:
  *         description: Unexpected error
  */
 categoriesRouter.put('/change-cats',loginCheck,changeCategory)
+
 
 /**
  * @openapi
@@ -183,5 +189,6 @@ categoriesRouter.put('/change-cats',loginCheck,changeCategory)
  *         description: Unexpected error
  */
 categoriesRouter.delete('/delete-cats/:category_id',loginCheck,deleteCategory)
+
 
 export {categoriesRouter}
