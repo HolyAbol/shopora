@@ -2,7 +2,7 @@ import {Response,Request} from 'express';
 import { pool } from '../../services/db/db';
 import { PoolClient } from 'pg';
 import { paginationQuery } from '../shared.schemas';
-import { addProductSchema,changeProductActiveSchema,changeProductCategorySchema,changeProductLowSchema,changeProductManuSchema,changeProductNameSchema, changeProductPriceSchema, changeProductQuantitySchema, ProductCategoryIdSchema, productDescriptionSchema, ProductIdSchema } from './product.schema';
+import { addProductSchema,changeProductActiveSchema,changeProductCategorySchema,changeProductLowSchema,changeProductManuSchema,changeProductNameSchema, changeProductPriceSchema, changeProductQuantitySchema , ProductCategoryIdSchema, productDescriptionSchema, ProductIdSchema } from './product.schema';
 import z from 'zod';
 async function addPro (req:Request,res:Response){
 if(!req.user){
@@ -19,7 +19,12 @@ if(!req.user){
       const client = await pool.connect()
     try{
      await client.query("BEGIN")
-   
+   const check = await client.query("SELECT * FROM categories WHERE category_id=$1 AND deleted_at IS NULL",
+    [category_id]
+   )
+   if(check.rowCount===0){
+    return res.status(404).json({message:"category doesn't exists"})
+   }
     const result = await client.query("INSERT INTO products(product_name,manufacturer_id,quantity,price,description,is_active,low_stock_threshold,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,now(),now()) RETURNING product_id ",
       [product_name,manufacturer_id,quantity,price,description,is_active,low_stock_threshold]
     )
@@ -50,6 +55,11 @@ if(!req.user){
 async function assignCategories(product_id:number,category_id:number,client:PoolClient){
      await client.query("INSERT INTO product_categories(product_id,category_id) VALUES ($1,$2)",
      [product_id,category_id])
+}
+async function deleteFromCategory(product_id:number,client:PoolClient){
+  await client.query("UPDATE product_categories SET deleted_at=now() WHERE product_id=$1 AND deleted_at IS NULL RETURNING deleted_at",
+    [product_id]
+  )
 }
 
 async function addDescription(req:Request,res:Response){
@@ -379,5 +389,39 @@ async function getProsById(req:Request,res:Response){
          return res.status(500).json({message:"unexpected error"})
         }
       }
-
-export {addPro,addDescription,changeProName,changeProPrice,changeProQuantity,changeProLowStock,changeProActive,changeProManu,changeProCategory,getPros,getProsByCategory,getProsById}
+async function deletepro(req:Request,res:Response) {
+  if(!req.user){
+      return res.status(401).json({message:"not authorized"})
+    }
+    const Details =ProductIdSchema.safeParse(req.params)
+    if(!Details.success){
+      return res.status(400).json({
+        message:"Validation failed",
+      errors:z.treeifyError(Details.error)
+          })
+        }
+        const client = await pool.connect()
+        const {product_id}=Details.data
+        try{
+      await client.query("BEGIN")
+      const existing = await client.query("SELECT * FROM products WHERE product_id=$1 AND deleted_at IS NULL ",
+        [product_id]
+      )
+      if(existing.rowCount===0){
+         return res.status(404).json({message:"product not found"})
+      }
+      await client.query("UPDATE products SET deleted_at=now() WHERE product_id=$1 AND deleted_at IS NULL",
+        [product_id]
+      )
+      await deleteFromCategory(existing.rows[0].product_id,client)
+      await client.query("COMMIT")
+      return res.status(201).json({message:'success'})
+        }catch(err){
+        await client.query("ROLLBACK")
+        console.log(err)
+        return res.status(500).json({message:"unexpected error"})
+        }finally{
+          client.release()
+        }
+}
+export {addPro,addDescription,changeProName,changeProPrice,changeProQuantity,changeProLowStock,changeProActive,changeProManu,changeProCategory,getPros,getProsByCategory,getProsById,deletepro}

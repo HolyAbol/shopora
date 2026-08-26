@@ -1,11 +1,11 @@
 import express from "express";
-import { addPro,addDescription,changeProName,changeProPrice,changeProQuantity,changeProLowStock,changeProActive,changeProManu,changeProCategory,getPros,getProsByCategory,getProsById} from "./product.controller";
+import { addPro,addDescription,changeProName,changeProPrice,changeProQuantity,changeProLowStock,changeProActive,changeProManu,changeProCategory,getPros,getProsByCategory,getProsById, deletepro} from "./product.controller";
 import { loginCheck } from "../../services/auth/auth.middleware";
 const productsRouter = express.Router()
 
 /**
  * @openapi
- * /v1/api/products/add-pros:
+ * /v1/api/pros/add-pros:
  *   post:
  *     summary: Add a new product
  *     tags: [Products]
@@ -49,7 +49,7 @@ productsRouter.post("/add-pros",loginCheck,addPro)
 
 /**
  * @openapi
- * /v1/api/products/add-pro-descs:
+ * /v1/api/pros/add-pro-descs:
  *   post:
  *     summary: Set a product's description
  *     tags: [Products]
@@ -81,7 +81,7 @@ productsRouter.post("/add-pro-descs",loginCheck,addDescription)
 
 /**
  * @openapi
- * /v1/api/products/change-pro-names:
+ * /v1/api/pros/change-pro-names:
  *   put:
  *     summary: Change a product's name
  *     tags: [Products]
@@ -113,7 +113,7 @@ productsRouter.put("/change-pro-names",loginCheck,changeProName)
 
 /**
  * @openapi
- * /v1/api/products/change-pro-prices:
+ * /v1/api/pros/change-pro-prices:
  *   put:
  *     summary: Change a product's price
  *     tags: [Products]
@@ -145,7 +145,7 @@ productsRouter.put("/change-pro-prices",loginCheck,changeProPrice)
 
 /**
  * @openapi
- * /v1/api/products/change-pro-quantities:
+ * /v1/api/pros/change-pro-quantities:
  *   put:
  *     summary: Change a product's quantity
  *     tags: [Products]
@@ -177,7 +177,7 @@ productsRouter.put("/change-pro-quantities",loginCheck,changeProQuantity)
 
 /**
  * @openapi
- * /v1/api/products/change-pro-lows:
+ * /v1/api/pros/change-pro-lows:
  *   put:
  *     summary: Change a product's low-stock threshold
  *     tags: [Products]
@@ -209,7 +209,7 @@ productsRouter.put("/change-pro-lows",loginCheck,changeProLowStock)
 
 /**
  * @openapi
- * /v1/api/products/change-pro-actives:
+ * /v1/api/pros/change-pro-actives:
  *   put:
  *     summary: Activate or deactivate a product
  *     tags: [Products]
@@ -241,7 +241,7 @@ productsRouter.put("/change-pro-actives",loginCheck,changeProActive)
 
 /**
  * @openapi
- * /v1/api/products/change-pro-manus:
+ * /v1/api/pros/change-pro-manus:
  *   put:
  *     summary: Change a product's manufacturer
  *     tags: [Products]
@@ -275,7 +275,7 @@ productsRouter.put("/change-pro-manus",loginCheck,changeProManu)
 
 /**
  * @openapi
- * /v1/api/products/change-pro-cats:
+ * /v1/api/pros/change-pro-cats:
  *   put:
  *     summary: Change a product's category
  *     tags: [Products]
@@ -287,7 +287,8 @@ productsRouter.put("/change-pro-manus",loginCheck,changeProManu)
  *         application/json:
  *           schema:
  *             type: object
- *             required: [product_id, category_id]*             properties:
+ *             required: [product_id, category_id]
+ *              properties:
  *               product_id:
  *                 type: integer
  *               category_id:
@@ -309,7 +310,7 @@ productsRouter.put("/change-pro-cats",loginCheck,changeProCategory)
 
 /**
  * @openapi
- * /v1/api/products/get-pros:
+ * /v1/api/pros/get-pros:
  *   get:
  *     summary: Get a paginated list of products
  *     tags: [Products]
@@ -338,7 +339,7 @@ productsRouter.get("/get-pros",loginCheck,getPros)
 
 /**
  * @openapi
- * /v1/api/products/get-pros/by-id/{product_id}:
+ * /v1/api/pros/get-pros/by-id/{product_id}:
  *   get:
  *     summary: Get a single product by ID
  *     tags: [Products]
@@ -364,7 +365,7 @@ productsRouter.get("/get-pros/by-id/:product_id",loginCheck,getProsById)
 
 /**
  * @openapi
- * /v1/api/products/get-pros/by-cat/{category_id}:
+ * /v1/api/pros/get-pros/by-cat/{category_id}:
  *   get:
  *     summary: Get a paginated list of products in a category
  *     tags: [Products]
@@ -395,5 +396,5 @@ productsRouter.get("/get-pros/by-id/:product_id",loginCheck,getProsById)
  *         description: No products found
  */
 productsRouter.get("/get-pros/by-cat/:category_id",loginCheck,getProsByCategory)
-
+productsRouter.delete("/delete-pros/:product_id",loginCheck,deletepro)
 export {productsRouter}

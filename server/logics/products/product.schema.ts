@@ -87,4 +87,3 @@ export const ProductCategoryIdSchema=productSchema.pick({
     category_id:true
 })
 
-

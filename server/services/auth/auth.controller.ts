@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 import {pool} from '../db/db.ts'
 import { DatabaseError } from 'pg';
 import { loginSchema, signupSchema } from './auth.schemas.ts';
-import { error } from 'node:console';
+
 
 async function signup(req:Request,res:Response){
     const creds=signupSchema.safeParse(req.body)
