@@ -75,7 +75,7 @@ async function addDescription(req:Request,res:Response){
         }
 const {description,product_id}=Details.data
  try{
-  const result =  await pool.query("UPDATE products SET description=$1 WHERE product_id=$2 AND deleted_at IS NULL RETURNING description ",
+  const result =  await pool.query("UPDATE products SET description=$1 ,updated_at=now() WHERE product_id=$2 AND deleted_at IS NULL RETURNING description ",
     [description,product_id]
   )
 if(result.rowCount===0){
@@ -103,7 +103,7 @@ async function changeProName(req:Request,res:Response){
         }
   const {product_name,product_id}=Details.data
 try{
-   const result = await pool.query("UPDATE products SET product_name=$1 WHERE product_id=$2 AND deleted_at IS NULL RETURNING product_name",
+   const result = await pool.query("UPDATE products SET product_name=$1 ,updated_at=now() WHERE product_id=$2 AND deleted_at IS NULL RETURNING product_name",
     [product_name,product_id]
   )
   if(result.rowCount===0){
@@ -132,7 +132,7 @@ async function changeProPrice(req:Request,res:Response){
         }
   const {price,product_id}=Details.data
 try{
-   const result = await pool.query("UPDATE products SET price=$1 WHERE product_id=$2 AND deleted_at IS NULL RETURNING price",
+   const result = await pool.query("UPDATE products SET price=$1 ,updated_at=now() WHERE product_id=$2 AND deleted_at IS NULL RETURNING price",
     [price,product_id]
   )
 if(result.rowCount===0){
@@ -160,7 +160,7 @@ async function changeProQuantity(req:Request,res:Response){
         }
   const {quantity,product_id}=Details.data
 try{
-  const result = await pool.query("UPDATE products SET quantity=$1 WHERE product_id=$2 AND deleted_at IS NULL RETURNING quantity",
+  const result = await pool.query("UPDATE products SET quantity=$1 ,updated_at=now() WHERE product_id=$2 AND deleted_at IS NULL RETURNING quantity",
     [quantity,product_id]
   )
 if(result.rowCount===0){
@@ -188,7 +188,7 @@ async function changeProLowStock(req:Request,res:Response){
         }
   const {low_stock_threshold,product_id}=Details.data
 try{
- const getPro = await pool.query("Select quantity from products where product_id=$1 AND deleted_at IS NULL",
+ const getPro = await pool.query("SELECT quantity FROM products WHERE product_id=$1 AND deleted_at IS NULL",
     [product_id]
   )
   if(getPro.rowCount===0){
@@ -197,7 +197,7 @@ try{
   if(getPro.rows[0].quantity < low_stock_threshold){
     return res.status(400).json({message:"low stock threshold can't be greater than quantity"})
   }
-   const result = await pool.query("UPDATE products SET low_stock_threshold=$1 WHERE product_id=$2 AND deleted_at IS NULL RETURNING quantity,low_stock_treshold",
+   const result = await pool.query("UPDATE products SET low_stock_threshold=$1 ,updated_at=now() WHERE product_id=$2 AND deleted_at IS NULL RETURNING quantity,low_stock_treshold",
     [low_stock_threshold,product_id]
   )
   if(result.rowCount===0){
@@ -227,7 +227,7 @@ async function changeProActive(req:Request,res:Response){
         }
   const {is_active,product_id}=Details.data
 try{
-  const result = await pool.query("UPDATE products SET is_active=$1 WHERE product_id=$2 AND deleted_at IS NULL RETURNING is_active",
+  const result = await pool.query("UPDATE products SET is_active=$1 ,updated_at=now() WHERE product_id=$2 AND deleted_at IS NULL RETURNING is_active",
     [is_active,product_id]
   )
 if(result.rowCount===0){
@@ -254,7 +254,7 @@ async function changeProManu(req:Request,res:Response){
         }
   const {manufacturer_id,product_id}=Details.data
 try{
-  const result = await pool.query("UPDATE products SET manufacturer_id=$1 WHERE product_id=$2 AND deleted_at IS NULL RETURNING Manufacturer_id",
+  const result = await pool.query("UPDATE products SET manufacturer_id=$1 ,updated_at=now() WHERE product_id=$2 AND deleted_at IS NULL RETURNING Manufacturer_id",
     [manufacturer_id,product_id]
   )
 if(result.rowCount===0){
@@ -291,7 +291,7 @@ try{
   if(categoryCheck.rows[0].category_parent_id===null){
     return res.status(400).json({message:"category must be a subcategory,not a parent category"})
   }
-   const results = await pool.query("UPDATE product_categories SET category_id=$1 WHERE product_id=$2 AND deleted_at IS NULL RETURNING category_id",
+   const results = await pool.query("UPDATE product_categories SET category_id=$1 ,updated_at=now() WHERE product_id=$2 AND deleted_at IS NULL RETURNING category_id",
     [category_id,product_id]
   )
   if(results.rowCount===0){

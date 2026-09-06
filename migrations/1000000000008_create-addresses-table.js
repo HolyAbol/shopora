@@ -12,7 +12,7 @@ export const up = (pgm) => {pgm.sql(`
     CREATE TABLE addresses (
     address_id       SERIAL,
     user_id           INT           NOT NULL,
-    address_title     VARCHAR(15),
+    address_title     VARCHAR(15)   NOT NULL,
     country_code       CHAR(2)       NOT NULL,
     province           VARCHAR(20)   NOT NULL,
     city                VARCHAR(20)   NOT NULL,

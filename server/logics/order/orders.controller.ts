@@ -1,0 +1,83 @@
+import {Response,Request} from 'express';
+import { pool } from '../../services/db/db';
+import z from 'zod';
+import { orderDetailsSchema } from './orders.schema';
+import { cartExistence, checkCartItems, getUserAddress } from '../shared.helpers';
+
+async function createOrder(req:Request,res:Response){
+        if (!req.user) {
+        return res.status(401).json({ message: "not authorized" })
+      }
+      const Details =orderDetailsSchema.safeParse(req.body)
+            if(!Details.success){
+              return res.status(400).json({
+                message:"Validation failed",
+              errors:z.treeifyError(Details.error)
+                  })
+                
+    }
+    interface CartItemRows{
+        product_id:number;
+        quantity:number;
+        price:number;
+        name:string
+    }
+    const client =await pool.connect()
+    try{
+    const user_id=req.user.user_id
+    const {payment_method}=Details.data
+    const checkAddress=await getUserAddress(user_id,client)
+
+    const checkCart=await cartExistence(user_id,client)
+
+    if(checkAddress.rowCount===0){
+      return res.status(404).json({message:"address not found"})
+    }
+    const address=checkAddress.rows[0].address_id
+    if(checkCart.rowCount===0){
+       return res.status(404).json({message:"cart not found"})
+    }
+      await client.query("BEGIN")
+      const items =await checkCartItems(user_id,client)
+      const totalItems = items.reduce((sum:number,i:CartItemRows)=>sum + i.quantity,0)
+      if(totalItems===0){
+        await client.query("ROLLBACK")
+       return res.status(400).json({message:"cart's empty"})
+      }
+      
+      for(const item of items){
+            const result = await client.query("UPDATE products SET quantity = quantity - $1 WHERE product_id=$2 AND quantity >= $1 RETURNING quantity",
+              [item.quantity,item.product_id]
+            )
+          if(result.rowCount===0){
+            await client.query("ROLLBACK")
+           return res.status(400).json({message:`insufficient stock for product ${item.name}`})
+          }
+      }
+      const totalPrice = items.reduce((sum:number,i:CartItemRows)=>sum + i.price*i.quantity,0)
+      
+          const orderResult=await client.query("INSERT INTO orders (user_id,address_id,total_amount,status,payment_method,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,now(),now()) RETURNING order_id",
+            [user_id,address,totalPrice,"pending_payment",payment_method]
+          )
+
+          const order_id = orderResult.rows[0].order_id
+          for (const item of items){
+            await client.query("INSERT INTO order_items(order_id,product_id,quantity,unit_price) VALUES ($1,$2,$3,$4)",
+              [order_id,item.product_id,item.quantity,item.price]
+            )
+          }
+          await client.query("DELETE FROM cart_items WHERE cart_id=$1",
+            [checkCart.rows[0].cart_id]
+          )
+          await client.query("COMMIT")
+          return res.status(200).json({message:"success"})
+    }catch(err){
+      await client.query("ROLLBACK")
+      console.log(err)
+     return res.status(500).json({message:"unexpected error"})
+    }finally{
+        client.release()
+    }
+    
+}
+export {createOrder}
