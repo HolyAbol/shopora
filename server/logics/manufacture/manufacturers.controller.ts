@@ -3,7 +3,7 @@ import { pool } from '../../services/db/db';
 import { manufactureChangeName,manufactureDeletion,manufactureAdd,manufactureID} from './manufacture.schemas';
 import { DatabaseError } from 'pg';
 import { paginationQuery } from '../shared.schemas';
-
+import z from 'zod';
 async function addManus (req:Request,res:Response){
     if(!req.user){
       return res.status(401).json({message:"not authorized"})
@@ -11,8 +11,11 @@ async function addManus (req:Request,res:Response){
     try{
       const Details = manufactureAdd.safeParse(req.body)
     if(!Details.success){
-          return res.status(400).json('missing credentials')
-        }
+              return res.status(400).json({
+                message:"Validation failed",
+              errors:z.treeifyError(Details.error)
+                  })
+                }
         const {manufacturer_name,country_code}=Details.data
      await pool.query("INSERT INTO manufacturers(manufacturer_name,country_code,created_at,updated_at) VALUES ($1,$2,now(),now()) ",
       [manufacturer_name,country_code]
@@ -35,8 +38,11 @@ async function changeManusName(req:Request,res:Response){
     try{
       const Details = manufactureChangeName.safeParse(req.body)
     if(!Details.success){
-          return res.status(400).json('missing credentials')
-        }
+              return res.status(400).json({
+                message:"Validation failed",
+              errors:z.treeifyError(Details.error)
+                  })
+                }
         const {manufacturer_id,manufacturer_new_name}=Details.data
     const existing = await pool.query("UPDATE manufacturers SET manufacturer_name=$1 , updated_at=now() WHERE manufacturer_id=$2 AND deleted_at IS NULL RETURNING manufacturer_name ",
       [manufacturer_new_name,manufacturer_id]
@@ -61,8 +67,11 @@ async function deleteManus(req:Request,res:Response){
     try{
       const Details = manufactureDeletion.safeParse(req.params)
     if(!Details.success){
-          return res.status(400).json('missing credentials')
-        }
+              return res.status(400).json({
+                message:"Validation failed",
+              errors:z.treeifyError(Details.error)
+                  })
+                }
         const {manufacturer_id}=Details.data
      const existing = await pool.query("UPDATE manufacturers SET updated_at=now(),deleted_at=now() WHERE manufacturer_id=$1 AND deleted_at IS NULL RETURNING manufacturer_name",
       [manufacturer_id]
@@ -83,8 +92,11 @@ async function getManusById(req:Request,res:Response){
       const Details = manufactureID.safeParse(req.params)
       console.log(Details.error?.issues)
     if(!Details.success){
-          return res.status(400).json('missing credentials')
-        }
+              return res.status(400).json({
+                message:"Validation failed",
+              errors:z.treeifyError(Details.error)
+                  })
+                }
         console.log(Details.data)
         const {manufacturer_id}=Details.data
      const existing = await pool.query("SELECT * FROM manufacturers WHERE manufacturer_id=$1 AND deleted_at IS NULL",
@@ -103,11 +115,12 @@ async function getManusById(req:Request,res:Response){
   async function getManus(req:Request,res:Response){
       try{
           const paginate = paginationQuery.safeParse(req.query)
-          console.log(paginate.error?.issues)
-          console.log(paginate.data)
-        if(!paginate.success){
-              return res.status(400).json('missing credentials')
-            }
+          if(!paginate.success){
+                    return res.status(400).json({
+                      message:"Validation failed",
+                    errors:z.treeifyError(paginate.error)
+                        })
+                      }
             const {limit,page}= paginate.data
             const offset = (page-1) * limit ;
             

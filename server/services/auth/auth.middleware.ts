@@ -16,6 +16,9 @@ async function loginCheck(req:Request,res:Response,next:NextFunction){
       "SELECT user_id, username, created_at, email , phone_number FROM users WHERE user_id=$1 AND deleted_at IS NULL",
       [payload.user_id]
    )
+   if(Result.rowCount===0){
+      return res.status(401).json({message:"user not found"})
+   }
    
 
    req.user=Result.rows[0]

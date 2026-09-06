@@ -9,7 +9,7 @@ const User= await pool.query('select * from users where username =$1 AND deleted
         return User
 }
 async function passHasher(password:string):Promise<string>{
-    return await bcrypt.hash(password,15)
+    return await bcrypt.hash(password,12)
 }
 async function compare(
     plainPassword: string,

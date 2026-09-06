@@ -10,7 +10,7 @@ app.use(express.json())
 app.use(cors({
     origin:'http://localhost:3000',
      credentials:true,
-     methods:["GET","POST","PUT","DELETE"]
+     methods:["GET","POST","PUT","PATCH","DELETE"]
 }))
 app.use('/v1',api)
 export default app

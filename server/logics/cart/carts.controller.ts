@@ -68,14 +68,17 @@ async function addItemsToCart(req:Request,res:Response){
           }
     const user_id=req.user.user_id      
     const {quantity,product_id}=Details.data
-    
+    const client = await pool.connect()
 try{
+  await client.query("BEGIN")
       const check = await checkStock(product_id)
     if(check.rowCount===0){
+      await client.query("ROLLBACK")
         return res.status(400).json({message:"product not found"})
     }
     const stockAmount = check.rows[0].quantity
     if(stockAmount<quantity){
+      await client.query("ROLLBACK")
         return res.status(400).json({message:"requested amount cannot exceed stock"})
     }
     let cart_id:number;
@@ -90,14 +93,19 @@ try{
  const currentAmount = await currentInCart(product_id,cart_id)
  const currentQty =currentAmount.rows[0]?.quantity ?? 0
  if(currentQty+quantity>stockAmount){
+  await client.query("ROLLBACK")
     return res.status(400).json({message:"requested amount cannot exceed stock"})
  }
  const result = await pool.query("INSERT INTO cart_items (cart_id,product_id,quantity,updated_at) values ($1,$2,$3,now()) ON CONFLICT (cart_id,product_id) DO UPDATE SET quantity = cart_items.quantity + EXCLUDED.quantity, deleted_at=NULL RETURNING cart_id , product_id , quantity",
     [cart_id,product_id,quantity]
  );
+ await client.query("COMMIT")
  return res.status(201).json({item: result.rows[0] })
 }catch{
+  await client.query("ROLLBACK")
     res.status(500).json({message:"unexpected error"})
+  }finally{
+    client.release()
   }
 
 }

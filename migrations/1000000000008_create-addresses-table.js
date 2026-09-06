@@ -11,7 +11,7 @@ export const shorthands = undefined;
 export const up = (pgm) => {pgm.sql(`
     CREATE TABLE addresses (
     address_id       SERIAL,
-    user_id           INT           NOT NULL,
+    user_id           INT           NOT NULL UNIQUE,
     address_title     VARCHAR(15)   NOT NULL,
     country_code       CHAR(2)       NOT NULL,
     province           VARCHAR(20)   NOT NULL,

@@ -3,6 +3,7 @@ import { pool } from '../../services/db/db';
 import { DatabaseError } from 'pg';
 import { addCategorySchema, categoryChange, categoryID } from './category.schema';
 import { paginationQuery } from '../shared.schemas';
+import z from 'zod';
 async function addCategory (req:Request,res:Response){
     if(!req.user){
       return res.status(401).json({message:"not authorized"})
@@ -11,8 +12,11 @@ async function addCategory (req:Request,res:Response){
       const Details = addCategorySchema.safeParse(req.body)
       console.log(Details.error?.issues)
     if(!Details.success){
-          return res.status(400).json('missing credentials')
-        }
+            return res.status(400).json({
+              message:"Validation failed",
+            errors:z.treeifyError(Details.error)
+                })
+              }
         const {category_name,category_parent_id}=Details.data
      await pool.query("INSERT INTO categories(category_name,category_parent_id,created_at,updated_at) VALUES ($1,$2,now(),now()) ",
       [category_name,category_parent_id]
@@ -36,9 +40,12 @@ async function changeCategory(req:Request,res:Response){
     }
     try{
       const Details = categoryChange.safeParse(req.body)
-    if(!Details.success){
-          return res.status(400).json('missing credentials')
-        }
+   if(!Details.success){
+           return res.status(400).json({
+             message:"Validation failed",
+           errors:z.treeifyError(Details.error)
+               })
+             }
         const {category_id,category_name,category_new_parent_id}=Details.data
 
       if(Details.data.category_new_parent_id=== Details.data.category_id){
@@ -71,19 +78,24 @@ async function deleteCategory(req:Request,res:Response){
   if(!req.user){
       return res.status(401).json({message:"not authorized"})
     }
-    try{
-      const Details = categoryID.safeParse(req.params)
-    if(!Details.success){
-          return res.status(400).json('missing credentials')
-        }
+     const Details = categoryID.safeParse(req.params)
+  if(!Details.success){
+          return res.status(400).json({
+            message:"Validation failed",
+          errors:z.treeifyError(Details.error)
+              })
+            }
      const {category_id}=Details.data
-
-        const childCheck = await pool.query(
+     const client = await pool.connect()
+    try{
+    await client.query("BEGIN")
+        const childCheck = await client.query(
           "SELECT category_id FROM categories WHERE category_parent_id=$1 AND deleted_at IS NULL LIMIT 1",
           [category_id]
         )
 
         if(childCheck.rowCount! > 0){
+          await client.query("ROLLBACK")
           return res.status(409).json({message:"category has active children"})
         }
 
@@ -92,13 +104,17 @@ async function deleteCategory(req:Request,res:Response){
     )
 
       if(existing.rowCount===0){
+        await client.query("ROLLBACK")
         return res.status(404).json({message:"category not found"})
       }
+      await client.query("COMMIT")
       return res.status(200).json({message:"success"})
   }
   catch(err){
-    console.log(err)
+    await client.query("ROLLBACK")
      return res.status(500).json({message:"unexpected error"})
+    }finally{
+      client.release()
     }
   }
 
@@ -107,8 +123,11 @@ async function deleteCategory(req:Request,res:Response){
         const paginate = paginationQuery.safeParse(req.query)
         
       if(!paginate.success){
-            return res.status(400).json('missing credentials')
-          }
+          return res.status(400).json({
+            message:"Validation failed",
+          errors:z.treeifyError(paginate.error)
+              })
+            }
           const {limit,page}= paginate.data
           const offset = (page-1) * limit ;
        const existing = await pool.query("SELECT * FROM categories WHERE deleted_at IS NULL ORDER BY category_id LIMIT $1 OFFSET $2",
@@ -128,7 +147,10 @@ async function deleteCategory(req:Request,res:Response){
       try{
           const Details = categoryID.safeParse(req.params)
         if(!Details.success){
-              return res.status(400).json('missing credentials')
+          return res.status(400).json({
+            message:"Validation failed",
+          errors:z.treeifyError(Details.error)
+              })
             }
             const {category_id}=Details.data
          const existing = await pool.query("SELECT * FROM categories WHERE category_id=$1 AND deleted_at IS NULL",

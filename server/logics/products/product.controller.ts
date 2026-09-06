@@ -23,6 +23,7 @@ if(!req.user){
     [category_id]
    )
    if(check.rowCount===0){
+    await client.query("ROLLBACK")
     return res.status(404).json({message:"category doesn't exists"})
    }
     const result = await client.query("INSERT INTO products(product_name,manufacturer_id,quantity,price,description,is_active,low_stock_threshold,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,now(),now()) RETURNING product_id ",
@@ -38,6 +39,7 @@ if(!req.user){
       const constraint = "constraint" in err ? err.constraint : undefined;
 
       if (constraint === "fk_manufacturer_id") {
+        
         return res.status(409).json({ message: "manufacturer doesn't exist" })
       }
       if (constraint === "fk_category_id") {
@@ -408,6 +410,7 @@ async function deletepro(req:Request,res:Response) {
         [product_id]
       )
       if(existing.rowCount===0){
+        await client.query("ROLLBACK")
          return res.status(404).json({message:"product not found"})
       }
       await client.query("UPDATE products SET deleted_at=now() WHERE product_id=$1 AND deleted_at IS NULL",
