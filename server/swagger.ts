@@ -1,5 +1,5 @@
-import swaggerJsDoc from 'swagger-jsdoc'
-import express from 'express'
+import swaggerJsDoc from 'swagger-jsdoc';
+import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
 
@@ -16,15 +16,15 @@ const options: swaggerJsDoc.Options = {
         cookieAuth: {
           type: 'apiKey',
           in: 'cookie',
-          name: 'token'
-        }
-      }
-    }
+          name: 'token',
+        },
+      },
+    },
   },
-  apis: ['server/**/*.ts']
-}
+  apis: ['server/**/*.ts'],
+};
 
-const swaggerspec = swaggerJSDoc(options)
-const swaggerDocs = express.Router()
-swaggerDocs.use('/', swaggerUi.serve, swaggerUi.setup(swaggerspec))
+const swaggerspec = swaggerJSDoc(options);
+const swaggerDocs = express.Router();
+swaggerDocs.use('/', swaggerUi.serve, swaggerUi.setup(swaggerspec));
 export default swaggerDocs;

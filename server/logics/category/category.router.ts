@@ -1,10 +1,14 @@
-import express from "express";
-import{addCategory,getCategoryById,getCategories,changeCategory,deleteCategory} from './category.controller'
-import { loginCheck } from "../../services/auth/auth.middleware";
+import express from 'express';
+import {
+  addCategory,
+  getCategoryById,
+  getCategories,
+  changeCategory,
+  deleteCategory,
+} from './category.controller';
+import { loginCheck } from '../../services/auth/auth.middleware';
 
-
-const categoriesRouter = express.Router()
-
+const categoriesRouter = express.Router();
 
 /**
  * @openapi
@@ -45,8 +49,7 @@ const categoriesRouter = express.Router()
  *       500:
  *         description: Unexpected error
  */
-categoriesRouter.post('/add-cats',loginCheck,addCategory)
-
+categoriesRouter.post('/add-cats', loginCheck, addCategory);
 
 /**
  * @openapi
@@ -71,8 +74,7 @@ categoriesRouter.post('/add-cats',loginCheck,addCategory)
  *       500:
  *         description: Unexpected error
  */
-categoriesRouter.get('/get-cats/:category_id',getCategoryById)
-
+categoriesRouter.get('/get-cats/:category_id', getCategoryById);
 
 /**
  * @openapi
@@ -103,8 +105,7 @@ categoriesRouter.get('/get-cats/:category_id',getCategoryById)
  *       500:
  *         description: Unexpected error
  */
-categoriesRouter.get('/get-cats',getCategories)
-
+categoriesRouter.get('/get-cats', getCategories);
 
 /**
  * @openapi
@@ -156,8 +157,7 @@ categoriesRouter.get('/get-cats',getCategories)
  *       500:
  *         description: Unexpected error
  */
-categoriesRouter.put('/change-cats',loginCheck,changeCategory)
-
+categoriesRouter.put('/change-cats', loginCheck, changeCategory);
 
 /**
  * @openapi
@@ -188,7 +188,6 @@ categoriesRouter.put('/change-cats',loginCheck,changeCategory)
  *       500:
  *         description: Unexpected error
  */
-categoriesRouter.delete('/delete-cats/:category_id',loginCheck,deleteCategory)
+categoriesRouter.delete('/delete-cats/:category_id', loginCheck, deleteCategory);
 
-
-export {categoriesRouter}
+export { categoriesRouter };

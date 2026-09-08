@@ -1,8 +1,14 @@
-import express from "express";
-import { loginCheck } from "../../services/auth/auth.middleware";
-import {getCarts,createCart,addItemsToCart,changeItemQuantity,removeItem} from "./carts.controller";
+import express from 'express';
+import { loginCheck } from '../../services/auth/auth.middleware';
+import {
+  getCarts,
+  createCart,
+  addItemsToCart,
+  changeItemQuantity,
+  removeItem,
+} from './carts.controller';
 
-const cartsRouter= express.Router();
+const cartsRouter = express.Router();
 
 /**
  * @openapi
@@ -23,7 +29,7 @@ const cartsRouter= express.Router();
  *       500:
  *         description: Unexpected error
  */
-cartsRouter.post("/create-cars", loginCheck, createCart);
+cartsRouter.post('/create-cars', loginCheck, createCart);
 
 /**
  * @openapi
@@ -44,7 +50,7 @@ cartsRouter.post("/create-cars", loginCheck, createCart);
  *       500:
  *         description: Unexpected error
  */
-cartsRouter.get("/get-cars", loginCheck, getCarts);
+cartsRouter.get('/get-cars', loginCheck, getCarts);
 
 /**
  * @openapi
@@ -81,7 +87,7 @@ cartsRouter.get("/get-cars", loginCheck, getCarts);
  *       500:
  *         description: Unexpected error
  */
-cartsRouter.post("/add-items-to-cars", loginCheck, addItemsToCart);
+cartsRouter.post('/add-items-to-cars', loginCheck, addItemsToCart);
 
 /**
  * @openapi
@@ -120,7 +126,7 @@ cartsRouter.post("/add-items-to-cars", loginCheck, addItemsToCart);
  *       500:
  *         description: Unexpected error
  */
-cartsRouter.patch("/change-item-quantities", loginCheck, changeItemQuantity);
+cartsRouter.patch('/change-item-quantities', loginCheck, changeItemQuantity);
 
 /**
  * @openapi
@@ -148,6 +154,6 @@ cartsRouter.patch("/change-item-quantities", loginCheck, changeItemQuantity);
  *       500:
  *         description: Unexpected error
  */
-cartsRouter.delete("/delete-items/:product_id", loginCheck, removeItem);
+cartsRouter.delete('/delete-items/:product_id', loginCheck, removeItem);
 
-export {cartsRouter}
+export { cartsRouter };

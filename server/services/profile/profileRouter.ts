@@ -1,7 +1,13 @@
 import { loginCheck } from '../auth/auth.middleware.ts';
-import { changeFullname, changePassword, changeUsername, deleteProfile, getProfile } from './profile.controller.ts';
+import {
+  changeFullname,
+  changePassword,
+  changeUsername,
+  deleteProfile,
+  getProfile,
+} from './profile.controller.ts';
 import express from 'express';
-const Profilerouter = express.Router()
+const Profilerouter = express.Router();
 
 /**
  * @openapi
@@ -33,7 +39,7 @@ const Profilerouter = express.Router()
  *       404:
  *         description: User not found
  */
-Profilerouter.get('/profile', loginCheck, getProfile)
+Profilerouter.get('/profile', loginCheck, getProfile);
 
 /**
  * @openapi
@@ -73,7 +79,7 @@ Profilerouter.get('/profile', loginCheck, getProfile)
  *       500:
  *         description: Unexpected error
  */
-Profilerouter.put('/change-password', loginCheck, changePassword)
+Profilerouter.put('/change-password', loginCheck, changePassword);
 
 /**
  * @openapi
@@ -112,7 +118,7 @@ Profilerouter.put('/change-password', loginCheck, changePassword)
  *       500:
  *         description: Unexpected error
  */
-Profilerouter.put('/change-username', loginCheck, changeUsername)
+Profilerouter.put('/change-username', loginCheck, changeUsername);
 
 /**
  * @openapi
@@ -154,7 +160,7 @@ Profilerouter.put('/change-username', loginCheck, changeUsername)
  *       500:
  *         description: Unexpected error
  */
-Profilerouter.put('/change-fullname', loginCheck, changeFullname)
+Profilerouter.put('/change-fullname', loginCheck, changeFullname);
 
 /**
  * @openapi
@@ -174,6 +180,6 @@ Profilerouter.put('/change-fullname', loginCheck, changeFullname)
  *       500:
  *         description: Unexpected error
  */
-Profilerouter.delete('/delete-profile', loginCheck, deleteProfile)
+Profilerouter.delete('/delete-profile', loginCheck, deleteProfile);
 
-export { Profilerouter }
+export { Profilerouter };

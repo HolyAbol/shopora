@@ -8,7 +8,8 @@ export const shorthands = undefined;
  * @param run {() => void | undefined}
  * @returns {Promise<void> | void}
  */
-export const up = (pgm) => {pgm.sql(`
+export const up = (pgm) => {
+  pgm.sql(`
     CREATE TABLE products (
     product_id           SERIAL,
     product_name         VARCHAR(50)  NOT NULL,
@@ -28,11 +29,14 @@ export const up = (pgm) => {pgm.sql(`
     CONSTRAINT chk_availability CHECK (quantity >= 0)
 );
 
-`)};
+`);
+};
 
 /**
  * @param pgm {import('node-pg-migrate').MigrationBuilder}
  * @param run {() => void | undefined}
  * @returns {Promise<void> | void}
  */
-export const down = (pgm) => {pgm.sql(`DROP TABLE products`)};
+export const down = (pgm) => {
+  pgm.sql(`DROP TABLE products`);
+};

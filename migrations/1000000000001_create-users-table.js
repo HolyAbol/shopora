@@ -1,7 +1,7 @@
 export const shorthands = undefined;
 
 export const up = (pgm) => {
-    pgm.sql(`
+  pgm.sql(`
         CREATE TABLE users (
     user_id       SERIAL,
     username      VARCHAR(30)  NOT NULL UNIQUE,
@@ -18,8 +18,10 @@ export const up = (pgm) => {
 
     CONSTRAINT pk_user_id PRIMARY KEY (user_id),
     CONSTRAINT chk_role CHECK (role IN ('user', 'admin'))
-);`)
+);`);
 };
 
-export const down = (pgm) => {pgm.sql(`
-    DROP TABLE users`)};
+export const down = (pgm) => {
+  pgm.sql(`
+    DROP TABLE users`);
+};

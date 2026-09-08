@@ -8,7 +8,8 @@ export const shorthands = undefined;
  * @param run {() => void | undefined}
  * @returns {Promise<void> | void}
  */
-export const up = (pgm) => {pgm.sql(`
+export const up = (pgm) => {
+  pgm.sql(`
     CREATE TABLE carts (
     cart_id       SERIAL,
     user_id        INT NOT NULL,
@@ -19,11 +20,14 @@ export const up = (pgm) => {pgm.sql(`
     CONSTRAINT pk_cart_id PRIMARY KEY (cart_id),
     CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users (user_id),
     CONSTRAINT uq_user_id UNIQUE (user_id)
-);`)};
+);`);
+};
 
 /**
  * @param pgm {import('node-pg-migrate').MigrationBuilder}
  * @param run {() => void | undefined}
  * @returns {Promise<void> | void}
  */
-export const down = (pgm) => {pgm.sql(` DROP TABLE carts`)};
+export const down = (pgm) => {
+  pgm.sql(` DROP TABLE carts`);
+};

@@ -10,7 +10,8 @@
     "migrate:down": "node-pg-migrate down",
     "migrate:create": "node-pg-migrate create",
     "jest": "jest --detectOpenHandles",
-    "jest:watch": "jest --watch"
+    "jest:watch": "jest --watch",
+    "format": "prettier --write ."
   },
   "author": "",
   "license": "ISC",

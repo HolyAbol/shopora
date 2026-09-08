@@ -1,7 +1,21 @@
-import express from "express";
-import { addPro,addDescription,changeProName,changeProPrice,changeProQuantity,changeProLowStock,changeProActive,changeProManu,changeProCategory,getPros,getProsByCategory,getProsById, deletepro} from "./product.controller";
-import { loginCheck } from "../../services/auth/auth.middleware";
-const productsRouter = express.Router()
+import express from 'express';
+import {
+  addPro,
+  addDescription,
+  changeProName,
+  changeProPrice,
+  changeProQuantity,
+  changeProLowStock,
+  changeProActive,
+  changeProManu,
+  changeProCategory,
+  getPros,
+  getProsByCategory,
+  getProsById,
+  deletepro,
+} from './product.controller';
+import { loginCheck } from '../../services/auth/auth.middleware';
+const productsRouter = express.Router();
 
 /**
  * @openapi
@@ -45,7 +59,7 @@ const productsRouter = express.Router()
  *       409:
  *         description: Manufacturer or category doesn't exist
  */
-productsRouter.post("/add-pros",loginCheck,addPro)
+productsRouter.post('/add-pros', loginCheck, addPro);
 
 /**
  * @openapi
@@ -77,7 +91,7 @@ productsRouter.post("/add-pros",loginCheck,addPro)
  *       404:
  *         description: Product not found
  */
-productsRouter.post("/add-pro-descs",loginCheck,addDescription)
+productsRouter.post('/add-pro-descs', loginCheck, addDescription);
 
 /**
  * @openapi
@@ -109,7 +123,7 @@ productsRouter.post("/add-pro-descs",loginCheck,addDescription)
  *       404:
  *         description: Product not found
  */
-productsRouter.put("/change-pro-names",loginCheck,changeProName)
+productsRouter.put('/change-pro-names', loginCheck, changeProName);
 
 /**
  * @openapi
@@ -141,7 +155,7 @@ productsRouter.put("/change-pro-names",loginCheck,changeProName)
  *       404:
  *         description: Product not found
  */
-productsRouter.put("/change-pro-prices",loginCheck,changeProPrice)
+productsRouter.put('/change-pro-prices', loginCheck, changeProPrice);
 
 /**
  * @openapi
@@ -173,7 +187,7 @@ productsRouter.put("/change-pro-prices",loginCheck,changeProPrice)
  *       404:
  *         description: Product not found
  */
-productsRouter.put("/change-pro-quantities",loginCheck,changeProQuantity)
+productsRouter.put('/change-pro-quantities', loginCheck, changeProQuantity);
 
 /**
  * @openapi
@@ -205,7 +219,7 @@ productsRouter.put("/change-pro-quantities",loginCheck,changeProQuantity)
  *       404:
  *         description: Product not found
  */
-productsRouter.put("/change-pro-lows",loginCheck,changeProLowStock)
+productsRouter.put('/change-pro-lows', loginCheck, changeProLowStock);
 
 /**
  * @openapi
@@ -237,7 +251,7 @@ productsRouter.put("/change-pro-lows",loginCheck,changeProLowStock)
  *       404:
  *         description: Product not found
  */
-productsRouter.put("/change-pro-actives",loginCheck,changeProActive)
+productsRouter.put('/change-pro-actives', loginCheck, changeProActive);
 
 /**
  * @openapi
@@ -271,7 +285,7 @@ productsRouter.put("/change-pro-actives",loginCheck,changeProActive)
  *       409:
  *         description: Manufacturer doesn't exist
  */
-productsRouter.put("/change-pro-manus",loginCheck,changeProManu)
+productsRouter.put('/change-pro-manus', loginCheck, changeProManu);
 
 /**
  * @openapi
@@ -306,7 +320,7 @@ productsRouter.put("/change-pro-manus",loginCheck,changeProManu)
  *       409:
  *         description: Category doesn't exist
  */
-productsRouter.put("/change-pro-cats",loginCheck,changeProCategory)
+productsRouter.put('/change-pro-cats', loginCheck, changeProCategory);
 
 /**
  * @openapi
@@ -335,7 +349,7 @@ productsRouter.put("/change-pro-cats",loginCheck,changeProCategory)
  *       404:
  *         description: No products found
  */
-productsRouter.get("/get-pros",loginCheck,getPros)
+productsRouter.get('/get-pros', loginCheck, getPros);
 
 /**
  * @openapi
@@ -361,7 +375,7 @@ productsRouter.get("/get-pros",loginCheck,getPros)
  *       404:
  *         description: Product not found
  */
-productsRouter.get("/get-pros/by-id/:product_id",loginCheck,getProsById)
+productsRouter.get('/get-pros/by-id/:product_id', loginCheck, getProsById);
 
 /**
  * @openapi
@@ -395,6 +409,6 @@ productsRouter.get("/get-pros/by-id/:product_id",loginCheck,getProsById)
  *       404:
  *         description: No products found
  */
-productsRouter.get("/get-pros/by-cat/:category_id",loginCheck,getProsByCategory)
-productsRouter.delete("/delete-pros/:product_id",loginCheck,deletepro)
-export {productsRouter}
+productsRouter.get('/get-pros/by-cat/:category_id', loginCheck, getProsByCategory);
+productsRouter.delete('/delete-pros/:product_id', loginCheck, deletepro);
+export { productsRouter };

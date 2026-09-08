@@ -1,7 +1,13 @@
-import express from "express";
-import {addManus,getManus,getManusById,changeManusName,deleteManus} from "./manufacturers.controller.ts"
-import { loginCheck } from "../../services/auth/auth.middleware.ts";
-const manufacturerRouter = express.Router()
+import express from 'express';
+import {
+  addManus,
+  getManus,
+  getManusById,
+  changeManusName,
+  deleteManus,
+} from './manufacturers.controller.ts';
+import { loginCheck } from '../../services/auth/auth.middleware.ts';
+const manufacturerRouter = express.Router();
 
 /**
  * @openapi
@@ -45,7 +51,7 @@ const manufacturerRouter = express.Router()
  *       500:
  *         description: Unexpected error
  */
-manufacturerRouter.post("/add-manus",loginCheck,addManus)
+manufacturerRouter.post('/add-manus', loginCheck, addManus);
 
 /**
  * @openapi
@@ -76,7 +82,7 @@ manufacturerRouter.post("/add-manus",loginCheck,addManus)
  *       500:
  *         description: Unexpected error
  */
-manufacturerRouter.get("/get-manus",getManus)
+manufacturerRouter.get('/get-manus', getManus);
 
 /**
  * @openapi
@@ -101,7 +107,7 @@ manufacturerRouter.get("/get-manus",getManus)
  *       500:
  *         description: Unexpected error
  */
-manufacturerRouter.get("/get-manus/:manufacturer_id",getManusById)
+manufacturerRouter.get('/get-manus/:manufacturer_id', getManusById);
 
 /**
  * @openapi
@@ -144,7 +150,7 @@ manufacturerRouter.get("/get-manus/:manufacturer_id",getManusById)
  *       500:
  *         description: Unexpected error
  */
-manufacturerRouter.put("/change-manus-name",loginCheck,changeManusName)
+manufacturerRouter.put('/change-manus-name', loginCheck, changeManusName);
 
 /**
  * @openapi
@@ -173,6 +179,6 @@ manufacturerRouter.put("/change-manus-name",loginCheck,changeManusName)
  *       500:
  *         description: Unexpected error
  */
-manufacturerRouter.delete("/delete-manus/:manufacturer_id",loginCheck,deleteManus)
+manufacturerRouter.delete('/delete-manus/:manufacturer_id', loginCheck, deleteManus);
 
-export {manufacturerRouter}
+export { manufacturerRouter };

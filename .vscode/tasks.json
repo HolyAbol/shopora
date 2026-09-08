@@ -1,0 +1,13 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "jest:watch",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: jest:watch",
+      "detail": "jest --watch"
+    }
+  ]
+}

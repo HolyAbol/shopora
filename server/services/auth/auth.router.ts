@@ -1,8 +1,8 @@
-import express from "express";
-import { signup,login,logout} from "./auth.controller.ts";
-import { loginCheck } from "./auth.middleware.ts";
+import express from 'express';
+import { signup, login, logout } from './auth.controller.ts';
+import { loginCheck } from './auth.middleware.ts';
 
-const Authrouter=express.Router()
+const Authrouter = express.Router();
 
 /**
  * @openapi
@@ -50,7 +50,7 @@ const Authrouter=express.Router()
  *       500:
  *         description: Unexpected error
  */
-Authrouter.post('/signup',signup)
+Authrouter.post('/signup', signup);
 
 /**
  * @openapi
@@ -84,7 +84,7 @@ Authrouter.post('/signup',signup)
  *       500:
  *         description: Unexpected error
  */
-Authrouter.post('/login',login)
+Authrouter.post('/login', login);
 
 /**
  * @openapi
@@ -102,6 +102,6 @@ Authrouter.post('/login',login)
  *       500:
  *         description: Unexpected error
  */
-Authrouter.post('/logout',loginCheck,logout)
+Authrouter.post('/logout', loginCheck, logout);
 
-export {Authrouter}
+export { Authrouter };

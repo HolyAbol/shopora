@@ -1,6 +1,6 @@
-import express from "express";
+import express from 'express';
 import { addAddress, changeAddress, deleteAddress } from './addresses.controller.ts';
-import { loginCheck } from "../../services/auth/auth.middleware.ts";
+import { loginCheck } from '../../services/auth/auth.middleware.ts';
 const addressesRouter = express.Router();
 
 /**
@@ -123,4 +123,4 @@ addressesRouter.patch('/change-adds', loginCheck, changeAddress);
  *         description: Unexpected server error
  */
 addressesRouter.delete('/delete-adds', loginCheck, deleteAddress);
-export {addressesRouter}
+export { addressesRouter };

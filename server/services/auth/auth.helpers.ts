@@ -1,31 +1,24 @@
-import bcrypt from 'bcrypt'
-import {Response} from 'express';
-import {pool} from '../db/db.ts'
+import bcrypt from 'bcrypt';
+import { Response } from 'express';
+import { pool } from '../db/db.ts';
 
-async function findUser(userName:string){
-const User= await pool.query('select * from users where username =$1 AND deleted_at IS NULL',
-        [userName]
-    )
-        return User
+async function findUser(userName: string) {
+  const User = await pool.query('select * from users where username =$1 AND deleted_at IS NULL', [
+    userName,
+  ]);
+  return User;
 }
-async function passHasher(password:string):Promise<string>{
-    return await bcrypt.hash(password,12)
+async function passHasher(password: string): Promise<string> {
+  return await bcrypt.hash(password, 12);
 }
-async function compare(
-    plainPassword: string,
-    hashedPassword: string
-): Promise<boolean> {
-    return bcrypt.compare(
-        plainPassword,
-        hashedPassword
-        
-    );
+async function compare(plainPassword: string, hashedPassword: string): Promise<boolean> {
+  return bcrypt.compare(plainPassword, hashedPassword);
 }
-function clearCookie(res:Response){
-res.clearCookie("token",{
-        sameSite:"lax",
-        secure:true,
-        httpOnly:true
-    })
+function clearCookie(res: Response) {
+  res.clearCookie('token', {
+    sameSite: 'lax',
+    secure: true,
+    httpOnly: true,
+  });
 }
-export{findUser,clearCookie,compare,passHasher}
+export { findUser, clearCookie, compare, passHasher };

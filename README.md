@@ -47,23 +47,24 @@ Full SQL schema: [`database/schema.sql`](database/schema.sql)
 
 **Tables:**
 
-| Table | Purpose |
-|---|---|
-| `users` | User accounts, credentials, and roles |
-| `products` | Product catalog |
-| `manufacturers` | Brands/manufacturers (one-to-many with products) |
-| `categories` | Nested product categories (self-referencing) |
-| `product_category` | Many-to-many junction between products and categories |
-| `carts` | One cart per user |
-| `cart_items` | Products inside a cart |
-| `addresses` | User shipping addresses (one-to-many) |
-| `orders` | Placed orders |
-| `order_items` | Snapshot of purchased products (price locked at purchase time) |
-| `refresh_tokens` | JWT refresh tokens per device/session |
+| Table              | Purpose                                                        |
+| ------------------ | -------------------------------------------------------------- |
+| `users`            | User accounts, credentials, and roles                          |
+| `products`         | Product catalog                                                |
+| `manufacturers`    | Brands/manufacturers (one-to-many with products)               |
+| `categories`       | Nested product categories (self-referencing)                   |
+| `product_category` | Many-to-many junction between products and categories          |
+| `carts`            | One cart per user                                              |
+| `cart_items`       | Products inside a cart                                         |
+| `addresses`        | User shipping addresses (one-to-many)                          |
+| `orders`           | Placed orders                                                  |
+| `order_items`      | Snapshot of purchased products (price locked at purchase time) |
+| `refresh_tokens`   | JWT refresh tokens per device/session                          |
 
 ## Main Features
 
 ### Authentication
+
 - User Registration
 - User Login
 - JWT Authentication
@@ -72,10 +73,12 @@ Full SQL schema: [`database/schema.sql`](database/schema.sql)
 - Password Hashing
 
 ### Authorization
+
 - Role-Based Access Control (RBAC)
 - Roles: User, Admin
 
 ### Products
+
 - Browse Products
 - Search Products
 - Filter Products
@@ -84,22 +87,26 @@ Full SQL schema: [`database/schema.sql`](database/schema.sql)
 - Product Categories
 
 ### Shopping Cart
+
 - Add Items
 - Remove Items
 - Update Item Quantity
 
 ### Orders
+
 - Place Orders
 - Order History
 - Order Status
 - Order Tracking
 
 ### Product Images
+
 - Upload Product Images
 - Store Images in S3-Compatible Object Storage
 - Generate Public Image URLs
 
 ### Admin Panel
+
 - Dashboard
 - Manage Products
 - Manage Categories
@@ -107,24 +114,28 @@ Full SQL schema: [`database/schema.sql`](database/schema.sql)
 - Manage Users
 
 ### Redis
+
 - Product Cache
 - Cart Cache
 - Rate Limiting
 - JWT Token Blacklist
 
 ### Background Jobs (Cron Jobs)
+
 - Detect Low Stock Products
 - Clear Abandoned Carts
 - Remove Expired Refresh Tokens
 - Daily Maintenance Tasks
 
 ### File Upload
+
 - Upload Files
 - Store Files using S3-Compatible Object Storage
 - Use MinIO for Local Development
 - Generate Public URLs for Uploaded Files
 
 ### API Documentation
+
 - Swagger (OpenAPI)
 
 ## Deployment
