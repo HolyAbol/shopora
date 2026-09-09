@@ -2,7 +2,13 @@ import { Response, Request } from 'express';
 import { pool } from '../../services/db/db';
 import z from 'zod';
 import { orderDetailsSchema } from './orders.schema';
-import { cartExistence, checkCartItems, getUserAddress } from '../shared.helpers';
+import {
+  cartExistence,
+  checkCartItems,
+  getUserAddress,
+  checkOrderItems,
+  isOrderCancelled,
+} from '../shared.helpers';
 import { paginationQuery } from '../shared.schemas';
 
 async function createOrder(req: Request, res: Response) {
@@ -104,31 +110,60 @@ async function getOrders(req: Request, res: Response) {
       [user_id, limit, offset]
     );
     if (result.rowCount === 0) {
-      res.status(404).json({ message: 'orders not found' });
+      return res.status(404).json({ message: 'orders not found' });
     }
-    res.status(200).json({ message: 'success', data: result.rows });
+    return res.status(200).json({ message: 'success', data: result.rows });
   } catch {
-    res.status(500).json({ messgae: 'unexpected error' });
+    return res.status(500).json({ messgae: 'unexpected error' });
   }
 }
 async function getOrdersById(req: Request, res: Response) {
   if (!req.user) {
     return res.status(401).json({ message: 'not authorized' });
   }
-  const order_id = req.params.order_id;
+  const order_id = Number(req.params.order_id);
   const user_id = req.user.user_id;
   try {
-    const result = await pool.query(
-      'SELECT * FROM orders o JOIN order_items oi ON oi.order_id =o.order_id WHERE o.order_id=$1 AND o.user_id=$2 AND o.deleted_at IS NULL AND oi.deleted_at IS NULL',
-      [order_id, user_id]
-    );
+    const result = await checkOrderItems(user_id, order_id, pool);
     if (result.rowCount === 0) {
-      res.status(404).json({ message: 'orders not found' });
+      return res.status(404).json({ message: 'orders not found' });
     }
-    res.status(200).json({ message: 'success', data: result.rows[0] });
+    return res.status(200).json({ message: 'success', data: result.rows[0] });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ message: 'unexpected error' });
+    return res.status(500).json({ message: 'unexpected error' });
   }
 }
-export { createOrder, getOrders, getOrdersById };
+async function cancelOrder(req: Request, res: Response) {
+  if (!req.user) {
+    return res.status(401).json({ message: 'not authorized' });
+  }
+  const order_id = Number(req.params.order_id);
+  const user_id = req.user.user_id;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await isOrderCancelled(user_id, order_id, client);
+    if (result.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'orders not found' });
+    }
+    const deletion = await client.query(
+      `UPDATE orders SET status= 'cancelled' ,updated_at=now() WHERE user_id=$1 AND order_id=$2 AND status ='pending_payment' RETURNING status`,
+      [user_id, order_id]
+    );
+    if (deletion.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ message: 'orders can not be cancelled' });
+    }
+    await client.query('COMMIT');
+    return res.status(200).json({ message: 'success', data: deletion.rows[0] });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.log(err);
+    return res.status(500).json({ message: 'unexpected error' });
+  } finally {
+    client.release();
+  }
+}
+export { createOrder, getOrders, getOrdersById, cancelOrder };

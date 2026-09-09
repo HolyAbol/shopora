@@ -1,9 +1,10 @@
 import bcrypt from 'bcrypt';
 import { Response } from 'express';
 import { pool } from '../db/db.ts';
-
-async function findUser(userName: string) {
-  const User = await pool.query('select * from users where username =$1 AND deleted_at IS NULL', [
+import { Pool, PoolClient } from 'pg';
+type Queryable = Pool | PoolClient;
+async function findUser(userName: string, db: Queryable) {
+  const User = await db.query('SELECT * FROM users WHERE username =$1 AND deleted_at IS NULL', [
     userName,
   ]);
   return User;

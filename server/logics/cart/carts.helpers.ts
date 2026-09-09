@@ -1,12 +1,5 @@
 import { pool } from '../../services/db/db';
 
-async function cartCreator(user_id: number) {
-  const creation = await pool.query(
-    'INSERT INTO carts (user_id,created_at) VALUES ($1,$2) RETURNING cart_id,user_id',
-    [user_id]
-  );
-  return creation;
-}
 async function checkStock(product_id: number) {
   const creation = await pool.query(
     'SELECT quantity FROM products WHERE product_id=$1 AND deleted_at IS NULL',
@@ -21,4 +14,4 @@ async function currentInCart(product_id: number, cart_id: number) {
   );
   return amount;
 }
-export { cartCreator, checkStock, currentInCart };
+export { checkStock, currentInCart };

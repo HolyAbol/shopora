@@ -2,25 +2,8 @@ import { Response, Request } from 'express';
 import { pool } from '../../services/db/db';
 import z from 'zod';
 import { addItemToCart, cartItemQuantity } from './carts.schema';
-import { cartCreator, checkStock, currentInCart } from './carts.helpers';
-import { cartExistence, checkCartItems } from '../shared.helpers';
-
-async function createCart(req: Request, res: Response) {
-  if (!req.user) {
-    return res.status(401).json({ message: 'not authorized' });
-  }
-  const user_id = req.user.user_id;
-  try {
-    const exist = await cartExistence(user_id, pool);
-    if (exist.rowCount === 0) {
-      const creation = await cartCreator(user_id);
-      return res.status(201).json({ cart: creation.rows[0] });
-    }
-    return res.status(200).json({ cart: exist.rows[0] });
-  } catch {
-    return res.status(500).json({ message: 'unexpected error' });
-  }
-}
+import { checkStock, currentInCart } from './carts.helpers';
+import { cartExistence, checkCartItems, cartCreator } from '../shared.helpers';
 async function getCarts(req: Request, res: Response) {
   interface CartItemRows {
     product_id: number;
@@ -84,7 +67,7 @@ async function addItemsToCart(req: Request, res: Response) {
     let cart_id: number;
     const exist = await cartExistence(user_id, pool);
     if (exist.rowCount === 0) {
-      const created = await cartCreator(user_id);
+      const created = await cartCreator(user_id, pool);
       cart_id = created.rows[0].cart_id;
     } else {
       cart_id = exist.rows[0].cart_id;
@@ -177,4 +160,4 @@ async function removeItem(req: Request, res: Response) {
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
-export { getCarts, createCart, addItemsToCart, changeItemQuantity, removeItem };
+export { getCarts, addItemsToCart, changeItemQuantity, removeItem };

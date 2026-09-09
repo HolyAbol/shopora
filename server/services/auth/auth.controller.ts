@@ -4,23 +4,39 @@ import jwt from 'jsonwebtoken';
 import { pool } from '../db/db.ts';
 import { DatabaseError } from 'pg';
 import { loginSchema, signupSchema } from './auth.schemas.ts';
-
+import { cartCreator } from '../../logics/shared.helpers.ts';
+import z from 'zod';
 async function signup(req: Request, res: Response) {
   const creds = signupSchema.safeParse(req.body);
+  if (!creds.success) {
+    return res.status(400).json({
+      message: 'Validation failed',
+      errors: z.treeifyError(creds.error),
+    });
+  }
+  const { userName, userEmail, userPhoneNumber, userPassword } = creds.data;
+  const client = await pool.connect();
   try {
-    if (!creds.success) {
-      return res.status(400).json({ message: 'missing credentials' });
-    }
-    const { userName, userEmail, userPhoneNumber, userPassword } = creds.data;
-    console.log(creds.data);
+    await client.query('BEGIN');
     const hashedPass = await passHasher(userPassword ?? '');
-    await pool.query(
-      'INSERT INTO users(username,password,phone_number,email) VALUES($1,$2,$3,$4)',
+    const result = await client.query(
+      'INSERT INTO users(username,password,phone_number,email,created_at) VALUES($1,$2,$3,$4,now()) RETURNING user_id',
       [userName, hashedPass, userPhoneNumber, userEmail]
     );
+    if (result.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(500).json({ message: 'unexpected error' });
+    }
+    const cartCheck = await cartCreator(result.rows[0].user_id, client);
+    if (cartCheck.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(500).json({ message: 'unexpected error' });
+    }
+    await client.query('COMMIT');
     return res.status(201).json({ message: 'success' });
   } catch (err) {
     console.log(err);
+    await client.query('ROLLBACK');
     if (err instanceof DatabaseError && err.code == '23505') {
       const fieldMap: Record<string, string> = {
         users_username_key: 'userName',
@@ -35,16 +51,20 @@ async function signup(req: Request, res: Response) {
 }
 async function login(req: Request, res: Response) {
   const creds = loginSchema.safeParse(req.body);
-  console.log(req.body, creds.success, creds.error?.issues);
   if (!creds.success) {
-    return res.status(400).json({ message: 'missing credentials' });
+    return res.status(400).json({
+      message: 'Validation failed',
+      errors: z.treeifyError(creds.error),
+    });
   }
+  const client = await pool.connect();
   const { userName, userPassword } = creds.data;
-  console.log(userName, userPassword);
   try {
-    const results = await findUser(userName);
+    await client.query('BEGIN');
+    const results = await findUser(userName, client);
     const User = results.rows[0];
     if (!User) {
+      await client.query('ROLLBACK');
       return res.status(401).json({ message: 'invalid creds' });
     }
     const checkPass = await compare(userPassword, User.password);
@@ -59,24 +79,31 @@ async function login(req: Request, res: Response) {
           expiresIn: '7d',
         }
       );
-
       res.cookie('token', token, {
         httpOnly: true,
         secure: true,
         sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
-      console.log(token);
-      await pool.query('UPDATE users SET last_activity = now() where username =$1', [
-        User.username,
-      ]);
+      const update = await client.query(
+        'UPDATE users SET last_activity = now() WHERE user_id =$1',
+        [User.user_id]
+      );
+      if (update.rowCount === 0) {
+        await client.query('ROLLBACK');
+        return res.status(500).json({ message: 'unexpected error' });
+      }
+      await client.query('COMMIT');
       return res.status(200).json({ message: 'enjoy' });
     } else {
-      console.log('AJHD');
+      await client.query('ROLLBACK');
       return res.status(401).json({ message: 'invalid creds' });
     }
   } catch {
+    await client.query('ROLLBACK');
     return res.status(500).json({ message: 'unexpected error' });
+  } finally {
+    client.release();
   }
 }
 

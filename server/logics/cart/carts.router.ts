@@ -1,35 +1,8 @@
 import express from 'express';
 import { loginCheck } from '../../services/auth/auth.middleware';
-import {
-  getCarts,
-  createCart,
-  addItemsToCart,
-  changeItemQuantity,
-  removeItem,
-} from './carts.controller';
+import { getCarts, addItemsToCart, changeItemQuantity, removeItem } from './carts.controller';
 
 const cartsRouter = express.Router();
-
-/**
- * @openapi
- * /v1/api/cars/create-cars:
- *   post:
- *     tags:
- *       - Carts
- *     summary: Create or fetch the user's cart
- *     security:
- *       - cookieAuth: []
- *     responses:
- *       201:
- *         description: Cart created
- *       200:
- *         description: Cart already existed, returned as-is
- *       401:
- *         description: Not authorized
- *       500:
- *         description: Unexpected error
- */
-cartsRouter.post('/create-cars', loginCheck, createCart);
 
 /**
  * @openapi
