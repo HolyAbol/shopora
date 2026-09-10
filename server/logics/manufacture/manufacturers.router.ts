@@ -6,7 +6,7 @@ import {
   changeManusName,
   deleteManus,
 } from './manufacturers.controller.ts';
-import { loginCheck } from '../../services/auth/auth.middleware.ts';
+import { loginCheck, requireRole } from '../../services/auth/auth.middleware.ts';
 const manufacturerRouter = express.Router();
 
 /**
@@ -51,7 +51,7 @@ const manufacturerRouter = express.Router();
  *       500:
  *         description: Unexpected error
  */
-manufacturerRouter.post('/add-manus', loginCheck, addManus);
+manufacturerRouter.post('/add-manus', loginCheck, requireRole('admin', 'shop_owner'), addManus);
 
 /**
  * @openapi
@@ -150,7 +150,12 @@ manufacturerRouter.get('/get-manus/:manufacturer_id', getManusById);
  *       500:
  *         description: Unexpected error
  */
-manufacturerRouter.put('/change-manus-name', loginCheck, changeManusName);
+manufacturerRouter.put(
+  '/change-manus-name',
+  loginCheck,
+  requireRole('admin', 'owner'),
+  changeManusName
+);
 
 /**
  * @openapi
@@ -179,6 +184,11 @@ manufacturerRouter.put('/change-manus-name', loginCheck, changeManusName);
  *       500:
  *         description: Unexpected error
  */
-manufacturerRouter.delete('/delete-manus/:manufacturer_id', loginCheck, deleteManus);
+manufacturerRouter.delete(
+  '/delete-manus/:manufacturer_id',
+  loginCheck,
+  requireRole('admin', 'owner'),
+  deleteManus
+);
 
 export { manufacturerRouter };

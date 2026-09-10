@@ -42,6 +42,21 @@ async function isOrderCancelled(user_id: number, order_id: number, db: Queryable
   );
   return result;
 }
+async function findProsByOwnerId(owner_id: number) {
+  const result = await pool.query(
+    'SELECT p.* FROM products p JOIN manufacturers m ON p.manufacturer_id = m.manufacturer_id WHERE m.owner_id = $1 AND p.deleted_at IS NULL AND m.deleted_at IS NULL',
+    [owner_id]
+  );
+  return result.rows;
+}
+
+async function findManusByOwnerId(owner_id: number) {
+  const result = await pool.query(
+    'SELECT * FROM manufacturers WHERE owner_id = $1 AND deleted_at IS NULL',
+    [owner_id]
+  );
+  return result.rows;
+}
 export {
   getUserAddress,
   cartExistence,
@@ -49,4 +64,6 @@ export {
   checkOrderItems,
   isOrderCancelled,
   cartCreator,
+  findManusByOwnerId,
+  findProsByOwnerId,
 };

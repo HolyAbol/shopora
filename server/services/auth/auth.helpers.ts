@@ -1,6 +1,5 @@
 import bcrypt from 'bcrypt';
 import { Response } from 'express';
-import { pool } from '../db/db.ts';
 import { Pool, PoolClient } from 'pg';
 type Queryable = Pool | PoolClient;
 async function findUser(userName: string, db: Queryable) {

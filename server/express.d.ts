@@ -5,9 +5,7 @@ declare global {
     interface User {
       user_id: number;
       username: string;
-      created_at: Date;
-      phone_number: string;
-      email: string;
+      role: string;
     }
 
     interface Request {

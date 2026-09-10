@@ -17,7 +17,7 @@ export const up = (pgm) => {
     last_activity   TIMESTAMP NOT NULL DEFAULT NOW(),
 
     CONSTRAINT pk_user_id PRIMARY KEY (user_id),
-    CONSTRAINT chk_role CHECK (role IN ('user', 'admin'))
+    CONSTRAINT chk_role CHECK (role IN ('user', 'admin', 'owner'))
 );`);
 };
 
