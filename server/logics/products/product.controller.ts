@@ -16,6 +16,7 @@ import {
   ProductIdSchema,
 } from './product.schema';
 import z from 'zod';
+import { findProsByOwnerId } from '../shared.helpers';
 async function addPro(req: Request, res: Response) {
   if (!req.user) {
     return res.status(401).json({ message: 'not authorized' });
@@ -40,6 +41,12 @@ async function addPro(req: Request, res: Response) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    const isAdmin = req.user.role === 'admin';
+    const isOwner = req.user.role === 'owner';
+    if (!isAdmin && !isOwner) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ message: 'insufficient permission' });
+    }
     const check = await client.query(
       'SELECT * FROM categories WHERE category_id=$1 AND deleted_at IS NULL',
       [category_id]
