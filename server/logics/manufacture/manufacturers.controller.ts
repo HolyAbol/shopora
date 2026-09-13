@@ -25,16 +25,14 @@ async function addManus(req: Request, res: Response) {
   try {
     await client.query('BEGIN');
     const isAdmin = req.user.role === 'admin';
-    const isOwner = req.user.role === 'owner';
-    if (!isAdmin && !isOwner) {
+    if (!isAdmin) {
       await client.query('ROLLBACK');
       return res.status(403).json({ message: 'insufficient permission' });
     }
     const { manufacturer_name, country_code } = Details.data;
-    const owner_id = req.user.user_id;
     await client.query(
-      'INSERT INTO manufacturers(manufacturer_name,country_code,owner_id,created_at,updated_at) VALUES ($1,$2,$3,now(),now()) ',
-      [manufacturer_name, country_code, owner_id]
+      'INSERT INTO manufacturers(manufacturer_name,country_code,created_at,updated_at) VALUES ($1,$2,now(),now()) ',
+      [manufacturer_name, country_code]
     );
     await client.query('COMMIT');
     return res.status(201).json({ message: 'success' });
@@ -73,8 +71,7 @@ async function changeManusName(req: Request, res: Response) {
       return res.status(404).json({ message: 'manufacturer not found' });
     }
     const isAdmin = req.user.role === 'admin';
-    const isOwner = checkOwnerShip.rows[0].owner_id === req.user.user_id;
-    if (!isAdmin && !isOwner) {
+    if (!isAdmin) {
       await client.query('ROLLBACK');
       return res.status(403).json({ message: 'insufficient permission' });
     }
@@ -122,8 +119,7 @@ async function deleteManus(req: Request, res: Response) {
       return res.status(404).json({ message: 'manufacturer not found' });
     }
     const isAdmin = req.user.role === 'admin';
-    const isOwner = checkOwnerShip.rows[0].owner_id === req.user.user_id;
-    if (!isAdmin && !isOwner) {
+    if (!isAdmin) {
       await client.query('ROLLBACK');
       return res.status(403).json({ message: 'insufficient permission' });
     }

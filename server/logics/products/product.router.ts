@@ -12,9 +12,9 @@ import {
   getPros,
   getProsByCategory,
   getProsById,
-  deletepro,
+  deleteProduct,
 } from './product.controller';
-import { loginCheck } from '../../services/auth/auth.middleware';
+import { loginCheck, requireRole } from '../../services/auth/auth.middleware';
 const productsRouter = express.Router();
 
 /**
@@ -59,7 +59,7 @@ const productsRouter = express.Router();
  *       409:
  *         description: Manufacturer or category doesn't exist
  */
-productsRouter.post('/add-pros', loginCheck, addPro);
+productsRouter.post('/add-pros', loginCheck, requireRole('owner'), addPro);
 
 /**
  * @openapi
@@ -91,7 +91,7 @@ productsRouter.post('/add-pros', loginCheck, addPro);
  *       404:
  *         description: Product not found
  */
-productsRouter.post('/add-pro-descs', loginCheck, addDescription);
+productsRouter.post('/add-pro-descs', loginCheck, requireRole('admin', 'owner'), addDescription);
 
 /**
  * @openapi
@@ -123,7 +123,7 @@ productsRouter.post('/add-pro-descs', loginCheck, addDescription);
  *       404:
  *         description: Product not found
  */
-productsRouter.put('/change-pro-names', loginCheck, changeProName);
+productsRouter.put('/change-pro-names', loginCheck, requireRole('admin', 'owner'), changeProName);
 
 /**
  * @openapi
@@ -155,7 +155,7 @@ productsRouter.put('/change-pro-names', loginCheck, changeProName);
  *       404:
  *         description: Product not found
  */
-productsRouter.put('/change-pro-prices', loginCheck, changeProPrice);
+productsRouter.put('/change-pro-prices', loginCheck, requireRole('admin', 'owner'), changeProPrice);
 
 /**
  * @openapi
@@ -187,7 +187,7 @@ productsRouter.put('/change-pro-prices', loginCheck, changeProPrice);
  *       404:
  *         description: Product not found
  */
-productsRouter.put('/change-pro-quantities', loginCheck, changeProQuantity);
+productsRouter.put('/change-pro-quantities', loginCheck, requireRole('admin', 'owner'), changeProQuantity);
 
 /**
  * @openapi
@@ -219,7 +219,7 @@ productsRouter.put('/change-pro-quantities', loginCheck, changeProQuantity);
  *       404:
  *         description: Product not found
  */
-productsRouter.put('/change-pro-lows', loginCheck, changeProLowStock);
+productsRouter.put('/change-pro-lows', loginCheck, requireRole('admin', 'owner'), changeProLowStock);
 
 /**
  * @openapi
@@ -251,7 +251,7 @@ productsRouter.put('/change-pro-lows', loginCheck, changeProLowStock);
  *       404:
  *         description: Product not found
  */
-productsRouter.put('/change-pro-actives', loginCheck, changeProActive);
+productsRouter.put('/change-pro-actives', loginCheck, requireRole('admin', 'owner'), changeProActive);
 
 /**
  * @openapi
@@ -285,7 +285,7 @@ productsRouter.put('/change-pro-actives', loginCheck, changeProActive);
  *       409:
  *         description: Manufacturer doesn't exist
  */
-productsRouter.put('/change-pro-manus', loginCheck, changeProManu);
+productsRouter.put('/change-pro-manus', loginCheck, requireRole('admin', 'owner'), changeProManu);
 
 /**
  * @openapi
@@ -320,7 +320,7 @@ productsRouter.put('/change-pro-manus', loginCheck, changeProManu);
  *       409:
  *         description: Category doesn't exist
  */
-productsRouter.put('/change-pro-cats', loginCheck, changeProCategory);
+productsRouter.put('/change-pro-cats', loginCheck, requireRole('admin', 'owner'), changeProCategory);
 
 /**
  * @openapi
@@ -328,8 +328,6 @@ productsRouter.put('/change-pro-cats', loginCheck, changeProCategory);
  *   get:
  *     summary: Get a paginated list of products
  *     tags: [Products]
- *     security:
- *       - cookieAuth: []
  *     parameters:
  *       - in: query
  *         name: page
@@ -344,12 +342,10 @@ productsRouter.put('/change-pro-cats', loginCheck, changeProCategory);
  *         description: List of products
  *       400:
  *         description: Validation failed
- *       401:
- *         description: Not authorized
  *       404:
  *         description: No products found
  */
-productsRouter.get('/get-pros', loginCheck, getPros);
+productsRouter.get('/get-pros', getPros);
 
 /**
  * @openapi
@@ -357,8 +353,6 @@ productsRouter.get('/get-pros', loginCheck, getPros);
  *   get:
  *     summary: Get a single product by ID
  *     tags: [Products]
- *     security:
- *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: product_id
@@ -370,12 +364,10 @@ productsRouter.get('/get-pros', loginCheck, getPros);
  *         description: Product found
  *       400:
  *         description: Validation failed
- *       401:
- *         description: Not authorized
  *       404:
  *         description: Product not found
  */
-productsRouter.get('/get-pros/by-id/:product_id', loginCheck, getProsById);
+productsRouter.get('/get-pros/by-id/:product_id', getProsById);
 
 /**
  * @openapi
@@ -383,8 +375,6 @@ productsRouter.get('/get-pros/by-id/:product_id', loginCheck, getProsById);
  *   get:
  *     summary: Get a paginated list of products in a category
  *     tags: [Products]
- *     security:
- *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: category_id
@@ -404,11 +394,37 @@ productsRouter.get('/get-pros/by-id/:product_id', loginCheck, getProsById);
  *         description: List of products in category
  *       400:
  *         description: Validation failed
- *       401:
- *         description: Not authorized
  *       404:
  *         description: No products found
  */
-productsRouter.get('/get-pros/by-cat/:category_id', loginCheck, getProsByCategory);
-productsRouter.delete('/delete-pros/:product_id', loginCheck, deletepro);
+productsRouter.get('/get-pros/by-cat/:category_id', getProsByCategory);
+
+/**
+ * @openapi
+ * /v1/api/pros/delete-pros/{product_id}:
+ *   delete:
+ *     summary: Delete a product (soft delete)
+ *     tags: [Products]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: product_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Product deleted
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Insufficient permission
+ *       404:
+ *         description: Product not found
+ */
+productsRouter.delete('/delete-pros/:product_id', loginCheck, requireRole('admin', 'owner'), deleteProduct);
+
 export { productsRouter };

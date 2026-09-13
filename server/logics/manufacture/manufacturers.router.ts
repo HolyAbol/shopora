@@ -51,7 +51,7 @@ const manufacturerRouter = express.Router();
  *       500:
  *         description: Unexpected error
  */
-manufacturerRouter.post('/add-manus', loginCheck, requireRole('admin', 'shop_owner'), addManus);
+manufacturerRouter.post('/add-manus', loginCheck, requireRole('admin'), addManus);
 
 /**
  * @openapi
@@ -150,12 +150,7 @@ manufacturerRouter.get('/get-manus/:manufacturer_id', getManusById);
  *       500:
  *         description: Unexpected error
  */
-manufacturerRouter.put(
-  '/change-manus-name',
-  loginCheck,
-  requireRole('admin', 'owner'),
-  changeManusName
-);
+manufacturerRouter.put('/change-manus-name', loginCheck, requireRole('admin'), changeManusName);
 
 /**
  * @openapi
@@ -187,7 +182,7 @@ manufacturerRouter.put(
 manufacturerRouter.delete(
   '/delete-manus/:manufacturer_id',
   loginCheck,
-  requireRole('admin', 'owner'),
+  requireRole('admin'),
   deleteManus
 );
 
