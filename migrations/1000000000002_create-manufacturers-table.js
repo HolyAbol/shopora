@@ -18,8 +18,7 @@ export const up = (pgm) => {
     updated_at           TIMESTAMP,
     deleted_at           TIMESTAMP,
 
-    CONSTRAINT pk_manufacturer_id PRIMARY KEY (manufacturer_id),
-    CONSTRAINT fk_owner_id FOREIGN KEY (owner_id) REFRENCES users (user_id)
+    CONSTRAINT pk_manufacturer_id PRIMARY KEY (manufacturer_id)
 );`
   );
 };

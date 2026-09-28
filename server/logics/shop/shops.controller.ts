@@ -7,14 +7,6 @@ async function createShop(req: Request, res: Response) {
   if (!req.user) {
     return res.status(401).json({ message: 'not authorized' });
   }
-
-  const isOwner = req.user.role === 'owner';
-  const isAdmin = req.user.role === 'admin';
-
-  if (!isOwner && !isAdmin) {
-    return res.status(403).json({ message: 'insufficient permission' });
-  }
-
   const Details = shopCreateSchema.safeParse(req.body);
   if (!Details.success) {
     return res.status(400).json({
@@ -22,14 +14,13 @@ async function createShop(req: Request, res: Response) {
       errors: z.treeifyError(Details.error),
     });
   }
-
   try {
     const { shop_name } = Details.data;
     const owner_id = req.user.user_id;
 
     const result = await pool.query(
-      'INSERT INTO shops(shop_name, owner_id, created_at, updated_at) VALUES ($1,$2,now(),now()) RETURNING *',
-      [shop_name, owner_id]
+      'INSERT INTO shops(shop_name, owner_id,status,created_at,updated_at) VALUES ($1,$2,$3,now(),now()) RETURNING *',
+      [shop_name, owner_id, 'waiting for approval']
     );
 
     return res.status(201).json({ message: 'success', data: result.rows[0] });

@@ -57,7 +57,7 @@ shopsRouter.get('/get-shop', loginCheck, requireRole('owner'), getShop);
  *       409:
  *         description: Owner already has a shop, or shop name taken
  */
-shopsRouter.post('/create-shop', loginCheck, requireRole('admin', 'owner'), createShop);
+shopsRouter.post('/create-shop', loginCheck, createShop);
 
 /**
  * @openapi

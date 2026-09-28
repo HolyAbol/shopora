@@ -23,9 +23,8 @@ export const up = (pgm) => {
     updated_at             TIMESTAMP,
     deleted_at             TIMESTAMP,
     low_stock_threshold    INT          DEFAULT 5,
-
     CONSTRAINT pk_product_id PRIMARY KEY (product_id),
-    CONSTRAINT fk_shop_id FOREIGN KEY (shop_id) REFERENCES shops(shop_id)
+    CONSTRAINT fk_shop_id FOREIGN KEY (shop_id) REFERENCES shops(shop_id),
     CONSTRAINT fk_manufacturer_id FOREIGN KEY (manufacturer_id)
         REFERENCES manufacturers(manufacturer_id),
     CONSTRAINT chk_availability CHECK (quantity >= 0)

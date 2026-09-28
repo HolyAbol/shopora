@@ -53,8 +53,11 @@
     "node-pg-migrate": "^9.0.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
-    "pg": "^8.22.0",
+    "pg": "^8.23.0",
+    "reflect-metadata": "^0.2.2",
     "swagger-ui-express": "^5.0.1",
+    "typeorm": "^0.3.31",
+    "typeorm-naming-strategies": "^4.1.0",
     "typescript-eslint": "^8.65.0",
     "zod": "^4.4.3"
   }

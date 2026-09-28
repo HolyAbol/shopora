@@ -187,7 +187,12 @@ productsRouter.put('/change-pro-prices', loginCheck, requireRole('admin', 'owner
  *       404:
  *         description: Product not found
  */
-productsRouter.put('/change-pro-quantities', loginCheck, requireRole('admin', 'owner'), changeProQuantity);
+productsRouter.put(
+  '/change-pro-quantities',
+  loginCheck,
+  requireRole('admin', 'owner'),
+  changeProQuantity
+);
 
 /**
  * @openapi
@@ -219,7 +224,12 @@ productsRouter.put('/change-pro-quantities', loginCheck, requireRole('admin', 'o
  *       404:
  *         description: Product not found
  */
-productsRouter.put('/change-pro-lows', loginCheck, requireRole('admin', 'owner'), changeProLowStock);
+productsRouter.put(
+  '/change-pro-lows',
+  loginCheck,
+  requireRole('admin', 'owner'),
+  changeProLowStock
+);
 
 /**
  * @openapi
@@ -251,7 +261,12 @@ productsRouter.put('/change-pro-lows', loginCheck, requireRole('admin', 'owner')
  *       404:
  *         description: Product not found
  */
-productsRouter.put('/change-pro-actives', loginCheck, requireRole('admin', 'owner'), changeProActive);
+productsRouter.put(
+  '/change-pro-actives',
+  loginCheck,
+  requireRole('admin', 'owner'),
+  changeProActive
+);
 
 /**
  * @openapi
@@ -302,7 +317,7 @@ productsRouter.put('/change-pro-manus', loginCheck, requireRole('admin', 'owner'
  *           schema:
  *             type: object
  *             required: [product_id, category_id]
- *              properties:
+ *             properties:
  *               product_id:
  *                 type: integer
  *               category_id:
@@ -320,7 +335,12 @@ productsRouter.put('/change-pro-manus', loginCheck, requireRole('admin', 'owner'
  *       409:
  *         description: Category doesn't exist
  */
-productsRouter.put('/change-pro-cats', loginCheck, requireRole('admin', 'owner'), changeProCategory);
+productsRouter.put(
+  '/change-pro-cats',
+  loginCheck,
+  requireRole('admin', 'owner'),
+  changeProCategory
+);
 
 /**
  * @openapi
@@ -425,6 +445,11 @@ productsRouter.get('/get-pros/by-cat/:category_id', getProsByCategory);
  *       404:
  *         description: Product not found
  */
-productsRouter.delete('/delete-pros/:product_id', loginCheck, requireRole('admin', 'owner'), deleteProduct);
+productsRouter.delete(
+  '/delete-pros/:product_id',
+  loginCheck,
+  requireRole('admin', 'owner'),
+  deleteProduct
+);
 
 export { productsRouter };

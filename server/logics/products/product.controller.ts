@@ -15,30 +15,14 @@ import {
   productDescriptionSchema,
   ProductIdSchema,
 } from './product.schema';
+import { checkProductOwnership, assignCategories } from './products.helper';
 import z from 'zod';
-
-async function checkProductOwnership(
-  db: PoolClient | typeof pool,
-  product_id: number,
-  user: { user_id: number; role?: string }
-): Promise<{ found: boolean; allowed: boolean }> {
-  const result = await db.query(
-    'SELECT s.owner_id FROM products p JOIN shops s ON p.shop_id = s.shop_idWHERE p.product_id=$1 AND p.deleted_at IS NULL AND s.deleted_at IS NULL',
-    [product_id]
-  );
-  if (result.rowCount === 0) {
-    return { found: false, allowed: false };
-  }
-  const isAdmin = user.role === 'admin';
-  const isOwner = result.rows[0].owner_id === user.user_id;
-  return { found: true, allowed: isAdmin || isOwner };
-}
 
 async function addPro(req: Request, res: Response) {
   if (!req.user) {
     return res.status(401).json({ message: 'not authorized' });
   }
-  // only shop owners create products (admins don't own a shop to attach products to)
+
   if (req.user.role !== 'owner') {
     return res.status(403).json({ message: 'insufficient permission' });
   }
@@ -63,7 +47,7 @@ async function addPro(req: Request, res: Response) {
   try {
     await client.query('BEGIN');
     const shopResult = await client.query(
-      'SELECT shop_id FROM shops WHERE owner_id=$1 AND deleted_at IS NULL',
+      `SELECT shop_id FROM shops WHERE owner_id=$1 AND status= 'approved' AND deleted_at IS NULL `,
       [req.user.user_id]
     );
     if (shopResult.rowCount === 0) {
@@ -109,13 +93,6 @@ async function addPro(req: Request, res: Response) {
     client.release();
   }
 }
-async function assignCategories(product_id: number, category_id: number, client: PoolClient) {
-  await client.query('INSERT INTO product_categories(product_id,category_id) VALUES ($1,$2)', [
-    product_id,
-    category_id,
-  ]);
-}
-
 async function addDescription(req: Request, res: Response) {
   if (!req.user) {
     return res.status(401).json({ message: 'not authorized' });
