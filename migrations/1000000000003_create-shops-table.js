@@ -1,6 +1,6 @@
 export const up = (pgm) => {
   pgm.sql(`CREATE TABLE shops(
-shop_id SERIAL NOT NULL,
+shop_id SERIAL,
 owner_id integer NOT NULL,
 shop_name varchar(100) NOT NULL,
 status varchar(40) NOT NULL,
