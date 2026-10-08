@@ -1,8 +1,8 @@
 export const up = (pgm) => {
   pgm.sql(`CREATE TABLE shops(
 shop_id SERIAL,
-owner_id integer NOT NULL,
-shop_name varchar(100) NOT NULL,
+owner_id integer NOT NULL UNIQUE,
+shop_name varchar(100) NOT NULL UNIQUE,
 status varchar(40) NOT NULL,
 created_at timestamp without time zone DEFAULT now(),
 approved_at timestamp without time zone,

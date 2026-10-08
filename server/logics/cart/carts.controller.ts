@@ -3,38 +3,44 @@ import { pool } from '../../services/db/db';
 import z from 'zod';
 import { addItemToCart, cartItemQuantity } from './carts.schema';
 import { checkStock, currentInCart } from './carts.helpers';
-import { cartExistence, checkCartItems, cartCreator } from '../shared.helpers';
+import {
+  cartExistence,
+  checkCartItems,
+  cartCreator,
+  deployment,
+  projectstatus,
+} from '../shared.helpers';
+import { AppDataSource } from '../../services/db/data-sources';
 async function getCarts(req: Request, res: Response) {
   interface CartItemRows {
+    cart_id: number;
     product_id: number;
     quantity: number;
+    product_name: string;
     price: number;
-    name: string;
   }
   if (!req.user) {
     return res.status(401).json({ message: 'not authorized' });
   }
   const user_id = req.user.user_id;
   try {
-    const check = await cartExistence(user_id, pool);
-    if (check.rowCount === 0) {
+    if (!(await cartExistence(user_id))) {
       return res.status(404).json({ message: 'cart dosent exists' });
     }
-    const result = await checkCartItems(user_id, pool);
-    console.log(result);
+    const items: CartItemRows[] = await checkCartItems(user_id);
 
-    const totalItems = result.reduce((sum: number, i: CartItemRows) => sum + i.quantity, 0);
-    const totalPrice = result.reduce(
+    const totalItems = items.reduce((sum: number, i: CartItemRows) => sum + i.quantity, 0);
+    const totalPrice = items.reduce(
       (sum: number, i: CartItemRows) => sum + i.price * i.quantity,
       0
     );
     return res.status(200).json({
-      items: result,
+      items: items,
       totalItems,
       totalPrice,
     });
   } catch (err) {
-    console.log(err);
+    deployment(err, projectstatus);
     res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -53,24 +59,20 @@ async function addItemsToCart(req: Request, res: Response) {
   const { quantity, product_id } = Details.data;
   const client = await pool.connect();
   try {
-    await client.query('BEGIN');
-    const check = await checkStock(product_id);
-    if (check.rowCount === 0) {
-      await client.query('ROLLBACK');
+    await AppDataSource.transaction(async (manager) => {});
+    const productQuantity = await checkStock(product_id);
+    if (!productQuantity) {
       return res.status(400).json({ message: 'product not found' });
     }
-    const stockAmount = check.rows[0].quantity;
-    if (stockAmount < quantity) {
-      await client.query('ROLLBACK');
+    if (productQuantity < quantity) {
       return res.status(400).json({ message: 'requested amount cannot exceed stock' });
     }
     let cart_id: number;
-    const exist = await cartExistence(user_id, pool);
-    if (exist.rowCount === 0) {
-      const created = await cartCreator(user_id, pool);
-      cart_id = created.rows[0].cart_id;
+    const exist = await cartExistence(user_id);
+    if (!exist) {
+      return res.status(404).json({ message: 'create anaccount first' });
     } else {
-      cart_id = exist.rows[0].cart_id;
+      cart_id = exist;
     }
     const currentAmount = await currentInCart(product_id, cart_id);
     const currentQty = currentAmount.rows[0]?.quantity ?? 0;

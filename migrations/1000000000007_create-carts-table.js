@@ -12,7 +12,7 @@ export const up = (pgm) => {
   pgm.sql(`
     CREATE TABLE carts (
     cart_id       SERIAL,
-    user_id        INT NOT NULL,
+    user_id        INT NOT NULL UNIQUE,
     created_at      TIMESTAMP   DEFAULT NOW(),
     updated_at      TIMESTAMP,
     deleted_at      TIMESTAMP,

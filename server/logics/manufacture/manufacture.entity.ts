@@ -1,33 +1,37 @@
 import {
-  BaseEntity,
   Entity,
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  UpdateDateColumn,
   PrimaryGeneratedColumn,
+  Column,
   OneToMany,
-} from "typeorm";
-import { ProductEntity } from "../products/product.entity";
-@Entity("manufacturers")
-export class ManufacturerEntity extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
+import { Product } from '../products/product.entity';
 
-  @Column({ type: "text", name: "manufacturer_name" })
-  manufactureName: string;
+@Entity({ name: 'manufacturers' })
+export class Manufacturer {
+  @PrimaryGeneratedColumn({
+    name: 'manufacturer_id',
+    primaryKeyConstraintName: 'pk_manufacturer_id',
+  })
+  manufacturerId: number;
 
-  @Column({ type: "text", name: "country_code" })
-  countryCode: string;
+  @Column({ name: 'manufacturer_name', type: 'varchar', length: 100, unique: true })
+  manufacturerName: string;
 
-  @CreateDateColumn({ type: "timestamp without time zone", name: "created_at" })
-  createdAt: Date;
+  @Column({ name: 'country_code', type: 'char', length: 2 })
+  countryCode: string | null;
 
-  @UpdateDateColumn({ type: "timestamp with time zone", name: "updated_at" })
-  updatedAt: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp', nullable: true })
+  createdAt: Date | null;
 
-  @DeleteDateColumn({ type: "time with time zone", name: "deleted_at" })
-  deletedAt: Date;
-  @OneToMany(() => ProductEntity, (product) => product.manufacture)
-  product: ProductEntity[];
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', nullable: true })
+  updatedAt: Date | null;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
+  deletedAt: Date | null;
+
+  @OneToMany(() => Product, (product) => product.manufacturer)
+  products: Product[];
 }

@@ -1,50 +1,54 @@
 import {
-  BaseEntity,
   Entity,
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  UpdateDateColumn,
   PrimaryGeneratedColumn,
-  OneToOne,
-  JoinColumn,
+  Column,
+  ManyToOne,
   OneToMany,
-} from "typeorm";
-import { UserEntity } from "../../services/user.entity";
-import { ProductEntity } from "../products/product.entity";
-@Entity("shops")
-export class ShopEntity extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  JoinColumn,
+  Check,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
+import { User } from '../../services/user.entity';
+import { Product } from '../products/product.entity';
 
-  @Column({ type: "text", name: "shop_name" })
-  shopName: string;
+export type ShopStatus = 'waiting for approval' | 'approved' | 'rejected';
 
-  @Column({ type: "int", name: "owner_id}" })
+@Entity({ name: 'shops' })
+@Check('chk_status', `"status" IN ('waiting for approval', 'approved', 'rejected')`)
+export class Shop {
+  @PrimaryGeneratedColumn({ name: 'shop_id' })
+  shopId: number;
+
+  @Column({ name: 'owner_id', type: 'int', unique: true })
   ownerId: number;
 
-  @Column({ type: "text" })
-  status: string;
+  @ManyToOne(() => User, (user) => user.shops, { nullable: false })
+  @JoinColumn({ name: 'owner_id', foreignKeyConstraintName: 'fk_owner_id' })
+  owner: User;
 
-  @CreateDateColumn({ type: "timestamp", name: "created_at" })
-  createdAt: Date;
+  @Column({ name: 'shop_name', type: 'varchar', length: 100, unique: true })
+  shopName: string;
 
-  @Column({ type: "time", nullable: true, name: "approved_at" })
-  approvedAt: Date;
+  @Column({ type: 'varchar', length: 40 })
+  status: ShopStatus;
 
-  @Column({ type: "time", nullable: true, name: "rejected_at" })
-  rejectedAt: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp', nullable: true })
+  createdAt: Date | null;
 
-  @UpdateDateColumn({ type: "timestamp", name: "updated_at" })
-  updatedAt: Date;
+  @Column({ name: 'approved_at', type: 'timestamp', nullable: true })
+  approvedAt: Date | null;
 
-  @DeleteDateColumn({ type: "timestamp", name: "deleted_at" })
-  deletedAt: Date;
+  @Column({ name: 'rejected_at', type: 'timestamp', nullable: true })
+  rejectedAt: Date | null;
 
-  @OneToOne(() => UserEntity, (user) => user.shop)
-  @JoinColumn({ name: "user_id" })
-  user: UserEntity;
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', nullable: true })
+  updatedAt: Date | null;
 
-  @OneToMany(() => ProductEntity, (product) => product.shop)
-  product: ProductEntity[];
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
+  deletedAt: Date | null;
+
+  @OneToMany(() => Product, (product) => product.shop)
+  products: Product[];
 }

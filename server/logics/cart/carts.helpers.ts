@@ -1,11 +1,18 @@
+import { AppDataSource } from '../../services/db/data-sources';
 import { pool } from '../../services/db/db';
+import { Product } from '../products/product.entity';
 
-async function checkStock(product_id: number) {
-  const creation = await pool.query(
-    'SELECT quantity FROM products WHERE product_id=$1 AND deleted_at IS NULL',
-    [product_id]
-  );
-  return creation;
+async function checkStock(product_id: number): Promise<number> {
+  const repo = AppDataSource.getRepository(Product);
+  const result = await repo.findOne({
+    where: { productId: product_id },
+    select: { quantity: true },
+  });
+  if (!result) {
+    throw new Error('product not found');
+  }
+  const quantity = Number(result?.quantity);
+  return quantity;
 }
 async function currentInCart(product_id: number, cart_id: number) {
   const amount = await pool.query(

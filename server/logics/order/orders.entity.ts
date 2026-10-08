@@ -1,51 +1,75 @@
 import {
-  BaseEntity,
   Entity,
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  UpdateDateColumn,
   PrimaryGeneratedColumn,
+  Column,
   ManyToOne,
+  OneToMany,
   JoinColumn,
-} from "typeorm";
-import { ManufacturerEntity } from "../manufacture/manufacture.entity";
-import { ShopEntity } from "../shop/shop.entity";
-@Entity("products")
-export class productEntity extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  Check,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
+import { User } from '../../services/user.entity';
+import { Address } from '../address/addresses.entity';
+import { OrderItem } from './orderItems.entity';
+export type OrderStatus =
+  | 'pending_payment'
+  | 'processing'
+  | 'sourcing'
+  | 'warehouse'
+  | 'packaging'
+  | 'shipped'
+  | 'delivered'
+  | 'cancelled';
 
-  @Column({ type: "int", nullable: false, name: "user_id" })
+export type PaymentMethod = 'cash_on_delivery' | 'online_payment' | 'installment';
+
+@Entity({ name: 'orders' })
+@Check(
+  'chk_payment_method',
+  `"payment_method" IN ('cash_on_delivery', 'online_payment', 'installment')`
+)
+@Check(
+  'chk_status',
+  `"status" IN ('pending_payment', 'processing', 'sourcing', 'warehouse', 'packaging', 'shipped', 'delivered', 'cancelled')`
+)
+export class Order {
+  @PrimaryGeneratedColumn({ name: 'order_id', primaryKeyConstraintName: 'pk_order_id' })
+  orderId: number;
+
+  @Column({ name: 'user_id', type: 'int' })
   userId: number;
 
-  @Column({ type: "int", nullable: false, name: "address_id" })
+  @ManyToOne(() => User, (user) => user.orders, { nullable: false })
+  @JoinColumn({ name: 'user_id', foreignKeyConstraintName: 'fk_order_user_id' })
+  user: User;
+
+  @Column({ name: 'address_id', type: 'int' })
   addressId: number;
 
-  @Column({ type: "int", nullable: false })
-  price: number;
+  @ManyToOne(() => Address, (address) => address.orders, { nullable: false })
+  @JoinColumn({ name: 'address_id', foreignKeyConstraintName: 'fk_order_address_id' })
+  address: Address;
 
-  @Column({ type: "text", nullable: true })
-  description: string;
+  @Column({ name: 'total_amount', type: 'int' })
+  totalAmount: number;
 
-  @Column({ type: "boolean", name: "is_active", default: true })
-  isActive: boolean;
+  @Column({ type: 'varchar', length: 20, default: 'pending_payment' })
+  status: OrderStatus;
 
-  @Column({ type: "int", default: 5, nullable: true })
-  lowStockThreshold: number;
+  @Column({ name: 'payment_method', type: 'varchar', length: 20 })
+  paymentMethod: PaymentMethod;
 
-  @CreateDateColumn({ type: "timestamp", name: "created_at" })
-  createdAt: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp', nullable: true })
+  createdAt: Date | null;
 
-  @UpdateDateColumn({ type: "timestamp", name: "updated_at" })
-  updatedAt: Date;
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', nullable: true })
+  updatedAt: Date | null;
 
-  @DeleteDateColumn({ type: "timestamp", name: "deleted_at" })
-  deletedAt: Date;
-  @ManyToOne(() => ManufacturerEntity, (manufacture) => manufacture.product)
-  @JoinColumn({ name: "id" })
-  manufacture: ManufacturerEntity;
-  @ManyToOne(() => ShopEntity, (shop) => shop.product)
-  @JoinColumn({ name: "id" })
-  shop: ShopEntity;
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
+  deletedAt: Date | null;
+
+  @OneToMany(() => OrderItem, (item) => item.order)
+  items: OrderItem[];
 }

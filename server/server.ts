@@ -2,6 +2,7 @@ import { pool } from './services/db/db.ts';
 import app from './app';
 import http from 'http';
 import https from 'https';
+import { AppDataSource } from './services/db/data-sources.ts';
 import path from 'path';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
@@ -11,6 +12,13 @@ await pool
   .connect()
   .then(() => console.log('connected to postgresssql'))
   .catch((err) => console.log(err));
+try {
+  await AppDataSource.initialize();
+  console.log('TypeORM connected');
+} catch {
+  console.log('err');
+}
+
 const PORT = process.env.PORT || 8080;
 // const testServer =http.createServer(app)
 // testServer.listen(3001,()=>{

@@ -5,12 +5,12 @@ export const manufacturersSchema = z.object({
     .string()
     .min(2)
     .max(100)
-    .regex(/^[a-zA-Z0-9_]+$/, 'only english chars,numbers,_ are allowed'),
+    .regex(/^[a-zA-Z0-9 &.\-_]+$/),
   manufacturer_new_name: z
     .string()
     .min(2)
     .max(100)
-    .regex(/^[a-zA-Z0-9_]+$/, 'only english chars,numbers,_ are allowed'),
+    .regex(/^[a-zA-Z0-9 &.\-_]+$/),
   country_code: z
     .string()
     .min(2)

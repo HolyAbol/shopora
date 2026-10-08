@@ -6,8 +6,8 @@ import {
   changeCategory,
   deleteCategory,
 } from './category.controller';
-import { loginCheck } from '../../services/auth/auth.middleware';
-
+import { loginCheck, requireRole } from '../../services/auth/auth.middleware';
+const admin = requireRole('admin');
 const categoriesRouter = express.Router();
 
 /**
@@ -49,7 +49,7 @@ const categoriesRouter = express.Router();
  *       500:
  *         description: Unexpected error
  */
-categoriesRouter.post('/add-cats', loginCheck, addCategory);
+categoriesRouter.post('/add-cats', loginCheck, admin, addCategory);
 
 /**
  * @openapi
@@ -157,7 +157,7 @@ categoriesRouter.get('/get-cats', getCategories);
  *       500:
  *         description: Unexpected error
  */
-categoriesRouter.put('/change-cats', loginCheck, changeCategory);
+categoriesRouter.put('/change-cats', loginCheck, admin, changeCategory);
 
 /**
  * @openapi
@@ -188,6 +188,6 @@ categoriesRouter.put('/change-cats', loginCheck, changeCategory);
  *       500:
  *         description: Unexpected error
  */
-categoriesRouter.delete('/delete-cats/:category_id', loginCheck, deleteCategory);
+categoriesRouter.delete('/delete-cats/:category_id', loginCheck, admin, deleteCategory);
 
 export { categoriesRouter };

@@ -13,7 +13,7 @@ export const up = (pgm) => {
     `CREATE TABLE manufacturers (
     manufacturer_id    SERIAL,
     manufacturer_name  VARCHAR(100)  NOT NULL UNIQUE,
-    country_code        CHAR(2),
+    country_code        CHAR(2)      NOT NULL,
     created_at           TIMESTAMP     DEFAULT NOW(),
     updated_at           TIMESTAMP,
     deleted_at           TIMESTAMP,

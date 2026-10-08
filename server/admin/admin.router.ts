@@ -66,7 +66,7 @@ const admin = requireRole('admin');
  *       500:
  *         description: Unexpected error
  */
-adminRouter.post('/add-menus', loginCheck, admin, addManus);
+adminRouter.post('/add-manus', loginCheck, admin, addManus);
 
 /**
  * @openapi

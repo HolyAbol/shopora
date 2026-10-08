@@ -1,43 +1,47 @@
 import {
-  BaseEntity,
   Entity,
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  UpdateDateColumn,
   PrimaryGeneratedColumn,
-  OneToMany,
+  Column,
   ManyToOne,
+  OneToMany,
   JoinColumn,
-} from "typeorm";
-import { productEntity } from "../products/product.entity";
-@Entity("categories")
-export class categoryEntity extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
+import { ProductCategory } from './productCategory.entity';
+@Entity({ name: 'categories' })
+export class Category {
+  @PrimaryGeneratedColumn({
+    name: 'category_id',
+    primaryKeyConstraintName: 'pk_category_id',
+  })
+  categoryId: number;
 
-  @Column({ type: "text", name: "category_name" })
+  @Column({ name: 'category_name', type: 'varchar', length: 50, unique: true })
   categoryName: string;
 
-  @Column({ type: "int", name: "category_parent_id", nullable: true })
-  categoryParentId: number;
+  @Column({ name: 'category_parent_id', type: 'int', nullable: true })
+  categoryParentId: number | null;
 
-  @CreateDateColumn({ type: "timestamp", name: "created_at" })
-  createdAt: Date;
-
-  @ManyToOne(() => categoryEntity, (category) => category.child, {
-    nullable: true,
+  @ManyToOne(() => Category, (category) => category.children, { nullable: true })
+  @JoinColumn({
+    name: 'category_parent_id',
+    foreignKeyConstraintName: 'fk_category_parent_id',
   })
-  @JoinColumn({ name: "category_parent_id" })
-  parent: categoryEntity;
+  parent: Category | null;
 
-  @OneToMany(() => categoryEntity, (category) => category.parent)
-  child: categoryEntity[];
+  @OneToMany(() => Category, (category) => category.parent)
+  children: Category[];
 
-  @UpdateDateColumn({ type: "timestamp", name: "updated_at" })
-  updatedAt: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp', nullable: true })
+  createdAt: Date | null;
 
-  @DeleteDateColumn({ type: "timestamp", name: "deleted_at" })
-  deletedAt: Date;
-  
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', nullable: true })
+  updatedAt: Date | null;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
+  deletedAt: Date | null;
+  @OneToMany(() => ProductCategory, (pc) => pc.category)
+  productCategories: ProductCategory[];
 }

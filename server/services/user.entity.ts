@@ -1,52 +1,65 @@
 import {
-  BaseEntity,
   Entity,
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  UpdateDateColumn,
   PrimaryGeneratedColumn,
+  Column,
+  Check,
   OneToOne,
-  JoinColumn,
-} from "typeorm";
-import { ShopEntity } from "../logics/shop/shop.entity";
-@Entity("users")
-export class UserEntity extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
+import { Cart } from '../logics/cart/carts.entity';
+import { Address } from '../logics/address/addresses.entity';
+import { Order } from '../logics/order/orders.entity';
+import { Shop } from '../logics/shop/shop.entity';
+export type UserRole = 'user' | 'admin' | 'owner';
 
-  @Column({ type: "text", nullable: false, unique: true })
+@Entity('users')
+@Check('chk_role', `"role" IN ('user', 'admin', 'owner')`)
+export class User {
+  @PrimaryGeneratedColumn({ name: 'user_id', primaryKeyConstraintName: 'pk_user_id' })
+  userId: number;
+
+  @Column({ type: 'varchar', length: 30, unique: true })
   username: string;
 
-  @Column({ type: "text", nullable: false })
+  @Column({ type: 'varchar', length: 60, select: false })
   password: string;
 
-  @Column({ type: "text", nullable: false, unique: true })
+  @Column({ type: 'varchar', length: 254, unique: true })
   email: string;
 
-  @Column({ type: "text", nullable: false, name: "first_name" })
-  firstName: string;
+  @Column({ name: 'phone_number', type: 'varchar', length: 11, unique: true })
+  phoneNumber: string;
 
-  @Column({ type: "text", nullable: false, name: "last_name" })
-  lastName: string;
+  @Column({ name: 'first_name', type: 'varchar', length: 20, nullable: true })
+  firstName: string | null;
 
-  @Column({ type: "int", nullable: false, unique: true, name: "phone_number" })
-  phoneNumber: number;
+  @Column({ name: 'last_name', type: 'varchar', length: 20, nullable: true })
+  lastName: string | null;
 
-  @Column({ type: "text", nullable: false, default: "user" })
-  role: string;
+  @Column({ type: 'varchar', length: 10, default: 'user' })
+  role: UserRole;
 
-  @Column({ type: "time", default: true, nullable: false })
-  lastActivity: boolean;
-
-  @CreateDateColumn({ type: "timestamp", name: "created_at" })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: "timestamp", name: "updated_at" })
-  updatedAt: Date;
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', nullable: true })
+  updatedAt: Date | null;
 
-  @DeleteDateColumn({ type: "timestamp", name: "deleted_at" })
-  deletedAt: Date;
-  @OneToOne(() => ShopEntity, (shop) => shop.user)
-  shop: ShopEntity;
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
+  deletedAt: Date | null;
+
+  @Column({ name: 'last_activity', type: 'timestamp', default: () => 'NOW()' })
+  lastActivity: Date;
+
+  @OneToOne(() => Cart, (cart) => cart.user)
+  cart: Cart;
+  @OneToOne(() => Address, (address) => address.user)
+  address: Address;
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
+  @OneToMany(() => Shop, (shop) => shop.owner)
+  shops: Shop[];
 }
