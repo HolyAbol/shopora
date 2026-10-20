@@ -2,6 +2,8 @@ import { Response, Request, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { tokenPayloadSchema } from './auth.schemas.ts';
 import { pool } from '../db/db.ts';
+import { AppDataSource } from '../db/data-sources.ts';
+import { User } from '../user.entity.ts';
 async function loginCheck(req: Request, res: Response, next: NextFunction) {
   const token = req.cookies.token;
   if (!token) {
@@ -12,15 +14,19 @@ async function loginCheck(req: Request, res: Response, next: NextFunction) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
     const payload = tokenPayloadSchema.parse(decoded);
-    const Result = await pool.query(
-      'SELECT user_id, username,role FROM users WHERE user_id=$1 AND deleted_at IS NULL',
-      [payload.user_id]
-    );
-    if (Result.rowCount === 0) {
+    const Result = await AppDataSource.getRepository(User).findOne({
+      where: { userId: payload.user_id },
+      select: { username: true, role: true, userId: true },
+    });
+    // pool.query(
+    //   'SELECT user_id, username,role FROM users WHERE user_id=$1 AND deleted_at IS NULL',
+    //   [payload.user_id]
+    // );
+    if (Result === null) {
       return res.status(401).json({ message: 'user not found' });
     }
 
-    req.user = Result.rows[0];
+    req.user = Result;
     next();
   } catch {
     return res.status(401).json({
@@ -36,7 +42,7 @@ function requireRole(...allowedRoles: string[]) {
     try {
       const result = await pool.query(
         'SELECT role FROM users WHERE user_id = $1 AND deleted_at IS NULL',
-        [req.user.user_id]
+        [req.user.userId]
       );
 
       const user = result.rows[0];

@@ -1,6 +1,6 @@
 import { Response, Request } from 'express';
 import z from 'zod';
-import { isPgError } from '../shared.helpers';
+import { isPgError, logger, projectstatus } from '../shared.helpers';
 import { IsNull } from 'typeorm';
 import { AppDataSource } from '../../services/db/data-sources';
 import { Shop } from './shop.entity';
@@ -26,7 +26,7 @@ async function createShop(req: Request, res: Response) {
     const shop = await repo.save(
       repo.create({
         shopName: shop_name,
-        ownerId: req.user.user_id,
+        ownerId: req.user.userId,
         status: 'waiting for approval',
       })
     );
@@ -35,7 +35,7 @@ async function createShop(req: Request, res: Response) {
     if (isPgError(err, '23505')) {
       return res.status(409).json({ message: 'you already have a shop, or shop name taken' });
     }
-    console.log(err);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -46,7 +46,7 @@ async function getShop(req: Request, res: Response) {
   }
   try {
     const shop = await AppDataSource.getRepository(Shop).findOne({
-      where: { ownerId: req.user.user_id },
+      where: { ownerId: req.user.userId },
       order: { shopId: 'ASC' },
     });
     if (!shop) {
@@ -54,7 +54,7 @@ async function getShop(req: Request, res: Response) {
     }
     return res.status(200).json({ message: 'success', data: shop });
   } catch (err) {
-    console.log(err);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -82,7 +82,7 @@ async function updateShop(req: Request, res: Response) {
     }
 
     const isAdmin = req.user.role === 'admin';
-    const isOwner = shop.ownerId === req.user.user_id;
+    const isOwner = shop.ownerId === req.user.userId;
     if (!isAdmin && !isOwner) {
       return res.status(403).json({ message: 'insufficient permission' });
     }
@@ -100,7 +100,7 @@ async function updateShop(req: Request, res: Response) {
     if (isPgError(err, '23505')) {
       return res.status(409).json({ message: 'shop name already exists' });
     }
-    console.log(err);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -128,7 +128,7 @@ async function deleteShop(req: Request, res: Response) {
       });
       if (!shop) return 'not_found' as const;
 
-      if (user.role !== 'admin' && shop.ownerId !== user.user_id) {
+      if (user.role !== 'admin' && shop.ownerId !== user.userId) {
         return 'forbidden' as const;
       }
 
@@ -146,7 +146,7 @@ async function deleteShop(req: Request, res: Response) {
     }
     return res.status(200).json({ message: 'success' });
   } catch (err) {
-    console.log(err);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }

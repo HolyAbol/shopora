@@ -19,6 +19,7 @@ import {
   reviewShopRequest,
   updateOrderStatusAdmin,
 } from './admin.controller';
+import { adminReadLimiter, adminWriteLimiter } from '../config/rateLimit.middleware';
 
 const adminRouter = express.Router();
 const admin = requireRole('admin');
@@ -55,18 +56,25 @@ const admin = requireRole('admin');
  *     responses:
  *       201:
  *         description: Manufacturer created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string, example: success }
+ *                 id: { type: integer, example: 12 }
  *       400:
- *         description: Invalid or missing fields
+ *         description: Validation failed
  *       401:
- *         description: Not authenticated
+ *         description: Not authorized
  *       403:
- *         description: Admin role required
+ *         description: Insufficient permission (admin role required)
  *       409:
  *         description: manufacturer_name already exists
  *       500:
- *         description: Unexpected error
+ *         description: Unexpected server error
  */
-adminRouter.post('/add-manus', loginCheck, admin, addManus);
+adminRouter.post('/add-manus', adminWriteLimiter, loginCheck, admin, addManus);
 
 /**
  * @openapi
@@ -76,17 +84,55 @@ adminRouter.post('/add-manus', loginCheck, admin, addManus);
  *     tags: [Admin]
  *     security:
  *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - manufacturer_id
+ *               - manufacturer_new_name
+ *             properties:
+ *               manufacturer_id:
+ *                 type: integer
+ *                 example: 12
+ *               manufacturer_new_name:
+ *                 type: string
+ *                 example: Nike Global
  *     responses:
  *       200:
  *         description: Manufacturer name updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string, example: success }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     manufactureName: { type: string, example: Nike Global }
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Insufficient permission (admin role required)
+ *       404:
+ *         description: Manufacturer not found
+ *       409:
+ *         description: manufacturer_name already exists
+ *       500:
+ *         description: Unexpected server error
  */
-adminRouter.put('/change-manus-name', loginCheck, admin, changeManusName);
+adminRouter.put('/change-manus-name', adminWriteLimiter, loginCheck, admin, changeManusName);
 
 /**
  * @openapi
  * /v1/api/admin/delete-manus/{manufacturer_id}:
  *   delete:
- *     summary: Soft-delete a manufacturer
+ *     summary: Soft-delete a manufacturer together with all of its products
  *     tags: [Admin]
  *     security:
  *       - cookieAuth: []
@@ -98,11 +144,25 @@ adminRouter.put('/change-manus-name', loginCheck, admin, changeManusName);
  *           type: integer
  *     responses:
  *       200:
- *         description: Manufacturer deleted
+ *         description: Manufacturer and its products deleted
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Insufficient permission (admin role required)
  *       404:
  *         description: Manufacturer not found
+ *       500:
+ *         description: Unexpected server error
  */
-adminRouter.delete('/delete-manus/:manufacturer_id', loginCheck, admin, deleteManus);
+adminRouter.delete(
+  '/delete-manus/:manufacturer_id',
+  adminWriteLimiter,
+  loginCheck,
+  admin,
+  deleteManus
+);
 
 /**
  * @openapi
@@ -135,15 +195,50 @@ adminRouter.delete('/delete-manus/:manufacturer_id', loginCheck, admin, deleteMa
  *           enum: [asc, desc]
  *       - in: query
  *         name: search
+ *         description: Matches email, first name or username (case-insensitive)
  *         schema:
  *           type: string
  *     responses:
  *       200:
  *         description: Paginated list of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       user_id: { type: integer }
+ *                       username: { type: string }
+ *                       phone_number: { type: string }
+ *                       email: { type: string }
+ *                       first_name: { type: string }
+ *                       last_name: { type: string }
+ *                       role: { type: string, enum: [admin, owner, user] }
+ *                       created_at: { type: string, format: date-time }
+ *                       updated_at: { type: string, format: date-time }
+ *                       deleted_at: { type: string, format: date-time, nullable: true }
+ *                       last_activity: { type: string, format: date-time, nullable: true }
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     page: { type: integer }
+ *                     limit: { type: integer }
+ *                     total: { type: integer }
+ *                     totalPages: { type: integer }
  *       400:
  *         description: Validation failed
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Insufficient permission (admin role required)
+ *       500:
+ *         description: Unexpected server error
  */
-adminRouter.get('/get-users', loginCheck, admin, getAllUsersAdmin);
+adminRouter.get('/get-users', adminReadLimiter, loginCheck, admin, getAllUsersAdmin);
 
 /**
  * @openapi
@@ -162,10 +257,27 @@ adminRouter.get('/get-users', loginCheck, admin, getAllUsersAdmin);
  *     responses:
  *       200:
  *         description: User found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string, example: success }
+ *                 user:
+ *                   type: object
+ *                   description: Full user record
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Insufficient permission (admin role required)
  *       404:
  *         description: User not found
+ *       500:
+ *         description: Unexpected server error
  */
-adminRouter.get('/get-user-by-id/:user_id', loginCheck, admin, getUserByIdAdmin);
+adminRouter.get('/get-user-by-id/:user_id', adminReadLimiter, loginCheck, admin, getUserByIdAdmin);
 
 /**
  * @openapi
@@ -188,7 +300,20 @@ adminRouter.get('/get-user-by-id/:user_id', loginCheck, admin, getUserByIdAdmin)
  *         name: sortBy
  *         schema:
  *           type: string
- *           enum: [product_name, price, quantity, created_at, updated_at]
+ *           enum:
+ *             - product_id
+ *             - product_name
+ *             - price
+ *             - quantity
+ *             - created_at
+ *             - updated_at
+ *             - deleted_at
+ *             - is_active
+ *             - low_stock_threshold
+ *             - manufacturer_name
+ *             - manufacturer_id
+ *             - shop_name
+ *             - shop_id
  *       - in: query
  *         name: order
  *         schema:
@@ -196,6 +321,7 @@ adminRouter.get('/get-user-by-id/:user_id', loginCheck, admin, getUserByIdAdmin)
  *           enum: [asc, desc]
  *       - in: query
  *         name: search
+ *         description: Matches product name or manufacturer name (case-insensitive)
  *         schema:
  *           type: string
  *       - in: query
@@ -213,8 +339,46 @@ adminRouter.get('/get-user-by-id/:user_id', loginCheck, admin, getUserByIdAdmin)
  *     responses:
  *       200:
  *         description: Paginated list of products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       product_id: { type: integer }
+ *                       product_name: { type: string }
+ *                       quantity: { type: integer }
+ *                       is_active: { type: boolean }
+ *                       low_stock_threshold: { type: integer }
+ *                       price: { type: number }
+ *                       shop_id: { type: integer }
+ *                       shop_name: { type: string }
+ *                       manufacturer_id: { type: integer }
+ *                       manufacturer_name: { type: string }
+ *                       created_at: { type: string, format: date-time }
+ *                       updated_at: { type: string, format: date-time }
+ *                       deleted_at: { type: string, format: date-time, nullable: true }
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     page: { type: integer }
+ *                     limit: { type: integer }
+ *                     total: { type: integer }
+ *                     totalPages: { type: integer }
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Insufficient permission (admin role required)
+ *       500:
+ *         description: Unexpected server error
  */
-adminRouter.get('/get-products', loginCheck, admin, getAllProductsAdmin);
+adminRouter.get('/get-products', adminReadLimiter, loginCheck, admin, getAllProductsAdmin);
 
 /**
  * @openapi
@@ -245,13 +409,51 @@ adminRouter.get('/get-products', loginCheck, admin, getAllProductsAdmin);
  *           enum: [asc, desc]
  *       - in: query
  *         name: search
+ *         description: Matches manufacturer name (case-insensitive)
  *         schema:
  *           type: string
  *     responses:
  *       200:
  *         description: Paginated list of manufacturers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       manufacturer_id: { type: integer }
+ *                       manufacturer_name: { type: string }
+ *                       country_code: { type: string, example: US }
+ *                       created_at: { type: string, format: date-time }
+ *                       updated_at: { type: string, format: date-time }
+ *                       deleted_at: { type: string, format: date-time, nullable: true }
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     page: { type: integer }
+ *                     limit: { type: integer }
+ *                     total: { type: integer }
+ *                     totalPages: { type: integer }
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Insufficient permission (admin role required)
+ *       500:
+ *         description: Unexpected server error
  */
-adminRouter.get('/get-manufacturers', loginCheck, admin, getAllManufacturersAdmin);
+adminRouter.get(
+  '/get-manufacturers',
+  adminReadLimiter,
+  loginCheck,
+  admin,
+  getAllManufacturersAdmin
+);
 
 /**
  * @openapi
@@ -282,6 +484,7 @@ adminRouter.get('/get-manufacturers', loginCheck, admin, getAllManufacturersAdmi
  *           enum: [asc, desc]
  *       - in: query
  *         name: search
+ *         description: Matches category name (case-insensitive)
  *         schema:
  *           type: string
  *       - in: query
@@ -291,14 +494,45 @@ adminRouter.get('/get-manufacturers', loginCheck, admin, getAllManufacturersAdmi
  *     responses:
  *       200:
  *         description: Paginated list of categories
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       category_id: { type: integer }
+ *                       category_name: { type: string }
+ *                       category_parent_id: { type: integer, nullable: true }
+ *                       created_at: { type: string, format: date-time }
+ *                       updated_at: { type: string, format: date-time }
+ *                       deleted_at: { type: string, format: date-time, nullable: true }
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     page: { type: integer }
+ *                     limit: { type: integer }
+ *                     total: { type: integer }
+ *                     totalPages: { type: integer }
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Insufficient permission (admin role required)
+ *       500:
+ *         description: Unexpected server error
  */
-adminRouter.get('/get-categories', loginCheck, admin, getAllCategoriesAdmin);
+adminRouter.get('/get-categories', adminReadLimiter, loginCheck, admin, getAllCategoriesAdmin);
 
 /**
  * @openapi
  * /v1/api/admin/get-shops:
  *   get:
- *     summary: List all shops (paginated, searchable, filterable by status)
+ *     summary: List all shops (paginated, searchable by owner, filterable by status)
  *     tags: [Admin]
  *     security:
  *       - cookieAuth: []
@@ -315,7 +549,15 @@ adminRouter.get('/get-categories', loginCheck, admin, getAllCategoriesAdmin);
  *         name: sortBy
  *         schema:
  *           type: string
- *           enum: [shop_name, status, created_at, approved_at]
+ *           enum:
+ *             - created_at
+ *             - status
+ *             - shop_name
+ *             - approved_at
+ *             - rejected_at
+ *             - first_name
+ *             - last_name
+ *             - email
  *       - in: query
  *         name: order
  *         schema:
@@ -323,6 +565,7 @@ adminRouter.get('/get-categories', loginCheck, admin, getAllCategoriesAdmin);
  *           enum: [asc, desc]
  *       - in: query
  *         name: search
+ *         description: Matches the owner's email, first name or last name (case-insensitive)
  *         schema:
  *           type: string
  *       - in: query
@@ -332,15 +575,52 @@ adminRouter.get('/get-categories', loginCheck, admin, getAllCategoriesAdmin);
  *           enum: ['waiting for approval', approved, rejected]
  *     responses:
  *       200:
- *         description: Paginated list of shops
+ *         description: Paginated list of shops (email, first_name and last_name belong to the owner)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       shop_id: { type: integer }
+ *                       owner_id: { type: integer }
+ *                       shop_name: { type: string }
+ *                       status: { type: string, enum: ['waiting for approval', approved, rejected] }
+ *                       created_at: { type: string, format: date-time }
+ *                       approved_at: { type: string, format: date-time, nullable: true }
+ *                       rejected_at: { type: string, format: date-time, nullable: true }
+ *                       updated_at: { type: string, format: date-time }
+ *                       deleted_at: { type: string, format: date-time, nullable: true }
+ *                       email: { type: string }
+ *                       first_name: { type: string }
+ *                       last_name: { type: string }
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     page: { type: integer }
+ *                     limit: { type: integer }
+ *                     total: { type: integer }
+ *                     totalPages: { type: integer }
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Insufficient permission (admin role required)
+ *       500:
+ *         description: Unexpected server error
  */
-adminRouter.get('/get-shops', loginCheck, admin, getAllShopsAdmin);
+adminRouter.get('/get-shops', adminReadLimiter, loginCheck, admin, getAllShopsAdmin);
 
 /**
  * @openapi
  * /v1/api/admin/review-shop/{user_id}:
  *   put:
- *     summary: Approve or reject a pending shop request (approval also promotes the user to owner)
+ *     summary: Approve or reject a pending shop request (approving also promotes a "user" to owner)
  *     tags: [Admin]
  *     security:
  *       - cookieAuth: []
@@ -356,6 +636,7 @@ adminRouter.get('/get-shops', loginCheck, admin, getAllShopsAdmin);
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [status]
  *             properties:
  *               status:
  *                 type: string
@@ -363,16 +644,24 @@ adminRouter.get('/get-shops', loginCheck, admin, getAllShopsAdmin);
  *     responses:
  *       200:
  *         description: Shop reviewed
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Insufficient permission (admin role required)
  *       404:
- *         description: Shop or user not found
+ *         description: User not found, or shop not found / already reviewed
+ *       500:
+ *         description: Unexpected server error
  */
-adminRouter.put('/review-shop/:user_id', loginCheck, admin, reviewShopRequest);
+adminRouter.put('/review-shop/:user_id', adminWriteLimiter, loginCheck, admin, reviewShopRequest);
 
 /**
  * @openapi
  * /v1/api/admin/get-orders:
  *   get:
- *     summary: List all orders (paginated, filterable by status and user)
+ *     summary: List all orders, including soft-deleted ones (paginated, filterable by status and user)
  *     tags: [Admin]
  *     security:
  *       - cookieAuth: []
@@ -389,7 +678,15 @@ adminRouter.put('/review-shop/:user_id', loginCheck, admin, reviewShopRequest);
  *         name: sortBy
  *         schema:
  *           type: string
- *           enum: [total_amount, status, created_at, updated_at]
+ *           enum:
+ *             - total_amount
+ *             - status
+ *             - payment_method
+ *             - first_name
+ *             - last_name
+ *             - email
+ *             - created_at
+ *             - updated_at
  *       - in: query
  *         name: order
  *         schema:
@@ -406,37 +703,121 @@ adminRouter.put('/review-shop/:user_id', loginCheck, admin, reviewShopRequest);
  *           type: integer
  *     responses:
  *       200:
- *         description: Paginated list of orders
+ *         description: Paginated list of orders (email, first_name and last_name belong to the buyer)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object// middlewares/rateLimit.ts  (اضافه به فایل قبلی)
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       order_id: { type: integer }
+ *                       status: { type: string }
+ *                       address_id: { type: integer }
+ *                       payment_method: { type: string }
+ *                       total_amount: { type: number }
+ *                       created_at: { type: string, format: date-time }
+ *                       updated_at: { type: string, format: date-time }
+ *                       email: { type: string }
+ *                       first_name: { type: string }
+ *                       last_name: { type: string }
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     page: { type: integer }
+ *                     limit: { type: integer }
+ *                     total: { type: integer }
+ *                     totalPages: { type: integer }
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Insufficient permission (admin role required)
+ *       500:
+ *         description: Unexpected server error
  */
-adminRouter.get('/get-orders', loginCheck, admin, getAllOrdersAdmin);
+adminRouter.get('/get-orders', adminReadLimiter, loginCheck, admin, getAllOrdersAdmin);
 
 /**
  * @openapi
  * /v1/api/admin/get-order-by-id/{order_id}:
  *   get:
- *     summary: Get a single order by id, including its items
+ *     summary: Get a single order by id, including its items, buyer and shipping address
  *     tags: [Admin]
  *     security:
  *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: order_id
- *         required: true
+ *         required: true// middlewares/rateLimit.ts  (اضافه به فایل قبلی)
  *         schema:
  *           type: integer
  *     responses:
  *       200:
  *         description: Order found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string, example: success }
+ *                 order:
+ *                   type: object
+ *                   properties:
+ *                     order_id: { type: integer }
+ *                     status: { type: string }
+ *                     address_id: { type: integer }
+ *                     payment_method: { type: string }
+ *                     total_amount: { type: number }
+ *                     created_at: { type: string, format: date-time }
+ *                     updated_at: { type: string, format: date-time }
+ *                     email: { type: string }
+ *                     first_name: { type: string }
+ *                     last_name: { type: string }
+ *                     phone_number: { type: string }
+ *                     address_title: { type: string }
+ *                     country_code: { type: string }
+ *                     province: { type: string }
+ *                     city: { type: string }
+ *                     address_detail: { type: string }
+ *                     postal_code: { type: string }
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       product_id: { type: integer }
+ *                       product_name: { type: string }
+ *                       quantity: { type: integer }
+ *                       unit_price: { type: number }
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Insufficient permission (admin role required)
  *       404:
  *         description: Order not found
+ *       500:
+ *         description: Unexpected server error
  */
-adminRouter.get('/get-order-by-id/:order_id', loginCheck, admin, getOrderByIdAdmin);
+adminRouter.get(
+  '/get-order-by-id/:order_id',
+  adminReadLimiter,
+  loginCheck,
+  admin,
+  getOrderByIdAdmin
+);
 
 /**
  * @openapi
  * /v1/api/admin/promote-user/{user_id}:
  *   put:
- *     summary: Change a user's role (owner promotion also approves their pending shop)
+ *     summary: Change a user's role (promoting to owner also approves their shop request)
  *     tags: [Admin]
  *     security:
  *       - cookieAuth: []
@@ -452,23 +833,32 @@ adminRouter.get('/get-order-by-id/:order_id', loginCheck, admin, getOrderByIdAdm
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [role]
  *             properties:
  *               role:
  *                 type: string
  *                 enum: [admin, owner, user]
  *     responses:
  *       200:
- *         description: Role updated
+ *         description: Role updated (message is "done" when promoting to owner, "success" otherwise)
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Insufficient permission (admin role required)
  *       404:
- *         description: User or shop not found
+ *         description: User not found (when the new role is admin or user)
+ *       500:
+ *         description: Unexpected server error
  */
-adminRouter.put('/promote-user/:user_id', loginCheck, admin, changeUserRole);
+adminRouter.put('/promote-user/:user_id', adminWriteLimiter, loginCheck, admin, changeUserRole);
 
 /**
  * @openapi
  * /v1/api/admin/delete-user/{user_id}:
  *   delete:
- *     summary: Soft-delete a user and cascade to their shops, products, and addresses
+ *     summary: Soft-delete a user and cascade to their shops, products and addresses (cart and cart items are hard-deleted)
  *     tags: [Admin]
  *     security:
  *       - cookieAuth: []
@@ -481,10 +871,19 @@ adminRouter.put('/promote-user/:user_id', loginCheck, admin, changeUserRole);
  *     responses:
  *       200:
  *         description: User and related data deleted
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Insufficient permission (admin role required)
  *       404:
  *         description: User not found
+ *       500:
+ *         description: Unexpected server error
  */
-adminRouter.delete('/delete-user/:user_id', loginCheck, admin, deleteUserAdmin);
+adminRouter.delete('/delete-user/:user_id', adminWriteLimiter, loginCheck, admin, deleteUserAdmin);
+
 /**
  * @openapi
  * /v1/api/admin/update-order-status/{order_id}:
@@ -505,6 +904,7 @@ adminRouter.delete('/delete-user/:user_id', loginCheck, admin, deleteUserAdmin);
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [status]
  *             properties:
  *               status:
  *                 type: string
@@ -514,8 +914,20 @@ adminRouter.delete('/delete-user/:user_id', loginCheck, admin, deleteUserAdmin);
  *         description: Order status updated
  *       400:
  *         description: Validation failed or invalid order id
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Insufficient permission (admin role required)
  *       404:
  *         description: Order not found
+ *       500:
+ *         description: Unexpected server error
  */
-adminRouter.put('/update-order-status/:order_id', loginCheck, admin, updateOrderStatusAdmin);
+adminRouter.put(
+  '/update-order-status/:order_id',
+  adminWriteLimiter,
+  loginCheck,
+  admin,
+  updateOrderStatusAdmin
+);
 export { adminRouter };

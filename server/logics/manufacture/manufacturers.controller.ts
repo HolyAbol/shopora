@@ -1,5 +1,4 @@
 import { Response, Request } from 'express';
-import { pool } from '../../services/db/db';
 import {
   manufactureChangeName,
   manufactureDeletion,
@@ -12,7 +11,7 @@ import z from 'zod';
 import { AppDataSource } from '../../services/db/data-sources';
 import { Manufacturer } from './manufacture.entity';
 import { IsNull, QueryFailedError } from 'typeorm';
-import { softDeleteProducts } from '../shared.helpers';
+import { softDeleteProducts, logger, projectstatus } from '../shared.helpers';
 
 async function addManus(req: Request, res: Response) {
   if (!req.user) {
@@ -46,7 +45,7 @@ async function addManus(req: Request, res: Response) {
     ) {
       return res.status(409).json({ message: 'manufacture_name already exists' });
     }
-    console.log(err);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -83,7 +82,7 @@ async function changeManusName(req: Request, res: Response) {
     ) {
       return res.status(409).json({ message: 'manufacture_name already exists' });
     }
-    console.log(err);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -126,7 +125,7 @@ async function deleteManus(req: Request, res: Response) {
     }
     return res.status(200).json({ message: 'success' });
   } catch (err) {
-    console.log(err);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -149,6 +148,7 @@ async function getManusById(req: Request, res: Response) {
     }
     return res.status(200).json({ message: 'success', data: manufacturer });
   } catch (err) {
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -180,7 +180,7 @@ async function getManus(req: Request, res: Response) {
       },
     });
   } catch (err) {
-    console.log(err);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }

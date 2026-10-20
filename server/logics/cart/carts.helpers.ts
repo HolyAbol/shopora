@@ -1,24 +1,29 @@
+import { EntityManager } from 'typeorm';
 import { AppDataSource } from '../../services/db/data-sources';
 import { pool } from '../../services/db/db';
 import { Product } from '../products/product.entity';
+import { CartItem } from './cartItems.entity';
+import { $ZodNull } from 'zod/v4/core';
 
-async function checkStock(product_id: number): Promise<number> {
-  const repo = AppDataSource.getRepository(Product);
+async function checkStock(product_id: number, db?: EntityManager): Promise<number | null> {
+  const manager = db ?? AppDataSource.manager;
+  const repo = manager.getRepository(Product);
   const result = await repo.findOne({
     where: { productId: product_id },
     select: { quantity: true },
   });
-  if (!result) {
-    throw new Error('product not found');
-  }
-  const quantity = Number(result?.quantity);
-  return quantity;
+  return result ? result.quantity : null;
 }
-async function currentInCart(product_id: number, cart_id: number) {
-  const amount = await pool.query(
-    'SELECT quantity FROM cart_items WHERE cart_id=$1 AND product_id=$2 AND deleted_at IS NULL',
-    [cart_id, product_id]
-  );
-  return amount;
+async function currentInCart(
+  product_id: number,
+  cart_id: number,
+  db?: EntityManager
+): Promise<number> {
+  const manager = db ?? AppDataSource.manager;
+  const amount = await manager.findOne(CartItem, {
+    where: { cartId: cart_id, productId: product_id },
+    select: { quantity: true },
+  });
+  return amount?.quantity ?? 0;
 }
 export { checkStock, currentInCart };

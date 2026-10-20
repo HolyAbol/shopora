@@ -3,7 +3,7 @@ import 'express';
 declare global {
   namespace Express {
     interface User {
-      user_id: number;
+      userId: number;
       username: string;
       role: string;
     }

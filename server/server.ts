@@ -8,17 +8,20 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 import fs from 'fs';
-await pool
-  .connect()
-  .then(() => console.log('connected to postgresssql'))
-  .catch((err) => console.log(err));
+try {
+  await pool.query('SELECT 1');
+  console.log('Connected to PostgreSQL');
+} catch (err) {
+  console.error('PostgreSQL connection failed:', err);
+  throw err;
+}
 try {
   await AppDataSource.initialize();
   console.log('TypeORM connected');
-} catch {
-  console.log('err');
+} catch (err) {
+  console.error('err');
+  throw err;
 }
-
 const PORT = process.env.PORT || 8080;
 // const testServer =http.createServer(app)
 // testServer.listen(3001,()=>{

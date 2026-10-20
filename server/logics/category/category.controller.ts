@@ -9,8 +9,7 @@ import { Product } from '../products/product.entity';
 import { CartItem } from '../cart/cartItems.entity';
 import { Category } from './category.entity';
 import { In, IsNull, QueryFailedError } from 'typeorm';
-import { deployment, projectstatus } from '../shared.helpers';
-import { error } from 'node:console';
+import { logger, projectstatus } from '../shared.helpers';
 async function addCategory(req: Request, res: Response) {
   if (!req.user) {
     return res.status(401).json({ message: 'not authorized' });
@@ -40,7 +39,7 @@ async function addCategory(req: Request, res: Response) {
         return res.status(400).json({ message: 'parent category does not exist' });
       }
     }
-    deployment(err, projectstatus);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -79,7 +78,7 @@ async function changeCategory(req: Request, res: Response) {
         return res.status(400).json({ message: 'parent category does not exist' });
       }
     }
-    deployment(err, projectstatus);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -155,7 +154,7 @@ async function deleteCategory(req: Request, res: Response) {
     }
     return res.status(200).json({ message: 'success' });
   } catch (err) {
-    deployment(err, projectstatus);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -188,7 +187,7 @@ async function getCategories(req: Request, res: Response) {
       },
     });
   } catch (err) {
-    deployment(err, projectstatus);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -210,7 +209,7 @@ async function getCategoryById(req: Request, res: Response) {
     }
     return res.status(200).json({ message: 'success', data: result });
   } catch (err) {
-    deployment(err, projectstatus);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }

@@ -1,21 +1,40 @@
 import { Response, Request } from 'express';
-import { pool } from '../../services/db/db';
 import z from 'zod';
-import { orderDetailsSchema } from './orders.schema';
+import { paymentMethodSchema, orderIdSchema } from './orders.schema';
 import {
   cartExistence,
   checkCartItems,
   getUserAddress,
   checkOrderItems,
   isOrderCancelled,
+  logger,
+  projectstatus,
 } from '../shared.helpers';
 import { paginationQuery } from '../shared.schemas';
-
+import { AppDataSource } from '../../services/db/data-sources';
+import { Product } from '../products/product.entity';
+import { Order } from './orders.entity';
+import { OrderItem } from './orderItems.entity';
+import { CartItem } from '../cart/cartItems.entity';
+const errors = {
+  address_not_found: [404, 'address not found'],
+  exceeds_stock: [400, 'requested amount cannot exceed stock'],
+  no_cart: [404, 'cart not found'],
+  empty_cart: [404, 'cart is empty'],
+  insufficient_stock: [400, 'insufficient stock'],
+  is_cancelled: [404, 'order is already cancelled'],
+  cant_cancel: [400, ''],
+} as const;
+class CheckoutError extends Error {
+  constructor(public code: keyof typeof errors) {
+    super(code);
+  }
+}
 async function createOrder(req: Request, res: Response) {
   if (!req.user) {
     return res.status(401).json({ message: 'not authorized' });
   }
-  const Details = orderDetailsSchema.safeParse(req.body);
+  const Details = paymentMethodSchema.safeParse(req.body);
   if (!Details.success) {
     return res.status(400).json({
       message: 'Validation failed',
@@ -28,66 +47,78 @@ async function createOrder(req: Request, res: Response) {
     price: number;
     product_name: string;
   }
-  const client = await pool.connect();
+  const user_id = req.user.userId;
+  const { payment_method } = Details.data;
   try {
-    const user_id = req.user.user_id;
-    const { payment_method } = Details.data;
-    const checkAddress = await getUserAddress(user_id, client);
-
-    const checkCart = await cartExistence(user_id, client);
-
-    if (checkAddress.rowCount === 0) {
-      return res.status(404).json({ message: 'address not found' });
-    }
-    const address = checkAddress.rows[0].address_id;
-    if (checkCart.rowCount === 0) {
-      return res.status(404).json({ message: 'cart not found' });
-    }
-    await client.query('BEGIN');
-    const items = await checkCartItems(user_id, client);
-    const totalItems = items.reduce((sum: number, i: CartItemRows) => sum + i.quantity, 0);
-    if (totalItems === 0) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ message: "cart's empty" });
-    }
-
-    for (const item of items) {
-      const result = await client.query(
-        'UPDATE products SET quantity = quantity - $1 WHERE product_id=$2 AND quantity >= $1 RETURNING quantity',
-        [item.quantity, item.product_id]
-      );
-      if (result.rowCount === 0) {
-        await client.query('ROLLBACK');
-        return res.status(400).json({ message: `insufficient stock for product ${item.name}` });
+    const outcome = await AppDataSource.transaction(async (manager) => {
+      const checkAddress = await getUserAddress(user_id, manager);
+      if (checkAddress === null) {
+        return { error: 'address_not_found' } as const;
       }
-    }
-    const totalPrice = items.reduce(
-      (sum: number, i: CartItemRows) => sum + i.price * i.quantity,
-      0
-    );
-    const orderResult = await client.query(
-      'INSERT INTO orders (user_id,address_id,total_amount,status,payment_method,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,now(),now()) RETURNING order_id',
-      [user_id, address, totalPrice, 'pending_payment', payment_method]
-    );
+      const address = checkAddress.addressId;
+      const checkCart = await cartExistence(user_id, manager);
+      if (checkCart === null) {
+        return { error: 'no_cart' } as const;
+      }
+      const cart = checkCart;
+      const items = await checkCartItems(user_id, manager);
+      const totalItems = items.reduce((sum: number, i: CartItemRows) => sum + i.quantity, 0);
+      if (totalItems === 0) {
+        return { error: 'empty_cart' } as const;
+      }
+      for (const item of items) {
+        const result = await manager
+          .createQueryBuilder()
+          .update(Product)
+          .set({ quantity: () => `quantity - ${Number(item.quantity)}` })
+          .where('productId = :id AND quantity >= :qty', {
+            id: item.product_id,
+            qty: item.quantity,
+          })
+          .setParameter('qty', item.quantity)
+          .execute();
 
-    const order_id = orderResult.rows[0].order_id;
-    for (const item of items) {
-      console.log(item.product_name);
-      await client.query(
-        'INSERT INTO order_items(order_id,product_id,product_name,quantity,unit_price) VALUES ($1,$2,$3,$4,$5)',
-        [order_id, item.product_id, item.product_name, item.quantity, item.price]
+        if (result.affected === 0) {
+          throw new CheckoutError('insufficient_stock');
+        }
+      }
+      const totalPrice = items.reduce(
+        (sum: number, i: CartItemRows) => sum + i.price * i.quantity,
+        0
       );
-      console.log(item.name);
+      const orderResult = await manager.save(Order, {
+        userId: user_id,
+        addressId: address,
+        totalAmount: totalPrice,
+        paymentMethod: payment_method,
+      });
+
+      const order_id = orderResult.orderId;
+      for (const item of items) {
+        console.log(item.product_name);
+        await manager.insert(OrderItem, {
+          orderId: order_id,
+          productId: item.product_id,
+          productName: item.product_name,
+          quantity: item.quantity,
+          unitPrice: item.price,
+        });
+      }
+      await manager.delete(CartItem, { cartId: cart });
+      return { order_id } as const;
+    });
+    if ('error' in outcome && outcome.error) {
+      const [status, message] = errors[outcome.error];
+      return res.status(status).json({ message });
     }
-    await client.query('DELETE FROM cart_items WHERE cart_id=$1', [checkCart.rows[0].cart_id]);
-    await client.query('COMMIT');
-    return res.status(200).json({ message: 'success' });
+    return res.status(201).json({ message: 'success', orderId: outcome.order_id });
   } catch (err) {
-    await client.query('ROLLBACK');
-    console.log(err);
+    if (err instanceof CheckoutError) {
+      const [status, message] = errors[err.code];
+      return res.status(status).json({ message });
+    }
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
-  } finally {
-    client.release();
   }
 }
 async function getOrders(req: Request, res: Response) {
@@ -103,16 +134,23 @@ async function getOrders(req: Request, res: Response) {
   }
   const { limit, page } = paginate.data;
   const offset = (page - 1) * limit;
-  const user_id = req.user.user_id;
+  const user_id = req.user.userId;
   try {
-    const result = await pool.query(
-      'SELECT * FROM orders WHERE user_id=$1 AND deleted_at IS NULL ORDER BY order_id LIMIT $2 OFFSET $3 ',
-      [user_id, limit, offset]
-    );
-    if (result.rowCount === 0) {
+    const [orders, total] = await AppDataSource.getRepository(Order).findAndCount({
+      where: { userId: user_id },
+      order: { orderId: 'ASC' },
+      take: limit,
+      skip: offset,
+    });
+
+    if (total === 0) {
       return res.status(404).json({ message: 'orders not found' });
     }
-    return res.status(200).json({ message: 'success', data: result.rows });
+    return res.status(200).json({
+      message: 'success',
+      data: orders,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
   } catch {
     return res.status(500).json({ messgae: 'unexpected error' });
   }
@@ -122,15 +160,16 @@ async function getOrdersById(req: Request, res: Response) {
     return res.status(401).json({ message: 'not authorized' });
   }
   const order_id = Number(req.params.order_id);
-  const user_id = req.user.user_id;
+  const user_id = req.user.userId;
   try {
-    const result = await checkOrderItems(user_id, order_id, pool);
-    if (result.rowCount === 0) {
+    const result = await checkOrderItems(user_id, order_id);
+    console.log(result);
+    if (!result === null) {
       return res.status(404).json({ message: 'orders not found' });
     }
-    return res.status(200).json({ message: 'success', data: result.rows[0] });
+    return res.status(200).json({ message: 'success', data: result });
   } catch (err) {
-    console.log(err);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -138,32 +177,39 @@ async function cancelOrder(req: Request, res: Response) {
   if (!req.user) {
     return res.status(401).json({ message: 'not authorized' });
   }
-  const order_id = Number(req.params.order_id);
-  const user_id = req.user.user_id;
-  const client = await pool.connect();
+  const Details = orderIdSchema.safeParse(req.params.order_id);
+  if (!Details.success) {
+    return res.status(400).json({
+      message: 'Validation failed',
+      errors: z.treeifyError(Details.error),
+    });
+  }
+  const { order_id } = Details.data;
+  const user_id = req.user.userId;
   try {
-    await client.query('BEGIN');
-    const result = await isOrderCancelled(user_id, order_id, client);
-    if (result.rowCount === 0) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ message: 'orders not found' });
+    const outcome = await AppDataSource.transaction(async (manager) => {
+      const result = await isOrderCancelled(user_id, order_id, manager);
+      if (result === null) {
+        return { error: 'is_cancelled' } as const;
+      }
+      const cancel = await manager.update(
+        Order,
+        { userId: user_id, order_id },
+        { status: 'cancelled' }
+      );
+      if (cancel.affected === 0) {
+        return { error: 'cant_cancel' } as const;
+      }
+      return { item: cancel } as const;
+    });
+    if ('error' in outcome && outcome.error) {
+      const [status, message] = errors[outcome.error];
+      return res.status(status).json({ message });
     }
-    const deletion = await client.query(
-      `UPDATE orders SET status= 'cancelled' ,updated_at=now() WHERE user_id=$1 AND order_id=$2 AND status ='pending_payment' RETURNING status`,
-      [user_id, order_id]
-    );
-    if (deletion.rowCount === 0) {
-      await client.query('ROLLBACK');
-      return res.status(409).json({ message: 'orders can not be cancelled' });
-    }
-    await client.query('COMMIT');
-    return res.status(200).json({ message: 'success', data: deletion.rows[0] });
+    return res.status(200).json({ message: 'success' });
   } catch (err) {
-    await client.query('ROLLBACK');
-    console.log(err);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
-  } finally {
-    client.release();
   }
 }
 export { createOrder, getOrders, getOrdersById, cancelOrder };

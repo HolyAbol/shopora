@@ -1,7 +1,13 @@
 import { Response, Request } from 'express';
-import { pool } from '../../services/db/db';
-import { PoolClient } from 'pg';
+import z from 'zod';
+import { IsNull } from 'typeorm';
+import { AppDataSource } from '../../services/db/data-sources';
+import { isPgError, logger, projectstatus } from '../shared.helpers';
 import { paginationQuery } from '../shared.schemas';
+import { Product } from './product.entity';
+import { Shop } from '../shop/shop.entity';
+import { Category } from '../category/category.entity';
+import { ProductCategory } from '../category/productCategory.entity';
 import {
   addProductSchema,
   changeProductActiveSchema,
@@ -16,7 +22,6 @@ import {
   ProductIdSchema,
 } from './product.schema';
 import { checkProductOwnership, assignCategories } from './products.helper';
-import z from 'zod';
 
 async function addPro(req: Request, res: Response) {
   if (!req.user) {
@@ -43,40 +48,39 @@ async function addPro(req: Request, res: Response) {
     is_active,
     low_stock_threshold,
   } = Details.data;
-  const client = await pool.connect();
+  const user = req.user;
+
   try {
-    await client.query('BEGIN');
-    const shopResult = await client.query(
-      `SELECT shop_id FROM shops WHERE owner_id=$1 AND status= 'approved' AND deleted_at IS NULL `,
-      [req.user.user_id]
-    );
-    if (shopResult.rowCount === 0) {
-      await client.query('ROLLBACK');
+    const outcome = await AppDataSource.transaction(async (manager) => {
+      const shop = await manager.findOne(Shop, {
+        where: { ownerId: user.userId, status: 'approved', deletedAt: IsNull() },
+      });
+      if (!shop) return 'no_shop' as const;
+
+      const product = await manager.save(
+        manager.create(Product, {
+          productName: product_name,
+          manufacturerId: manufacturer_id,
+          shopId: shop.shopId,
+          quantity,
+          price,
+          description,
+          isActive: is_active,
+          lowStockThreshold: low_stock_threshold,
+        })
+      );
+      await assignCategories(product.productId, category_id, manager);
+      console.log(product);
+      return product.productId;
+    });
+
+    if (outcome === 'no_shop') {
       return res.status(404).json({ message: 'you need to create a shop first' });
     }
-    const shop_id = shopResult.rows[0].shop_id;
-
-    const result = await client.query(
-      'INSERT INTO products(product_name,manufacturer_id,shop_id,quantity,price,description,is_active,low_stock_threshold,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,now(),now()) RETURNING product_id ',
-      [
-        product_name,
-        manufacturer_id,
-        shop_id,
-        quantity,
-        price,
-        description,
-        is_active,
-        low_stock_threshold,
-      ]
-    );
-    await assignCategories(result.rows[0].product_id, category_id, client);
-    await client.query('COMMIT');
-    console.log(result);
-    return res.status(201).json({ message: 'success', product_id: result.rows[0].product_id });
+    return res.status(201).json({ message: 'success', product_id: outcome });
   } catch (err: unknown) {
-    await client.query('ROLLBACK');
-    if (err instanceof Error && 'code' in err && err.code == '23503') {
-      const constraint = 'constraint' in err ? err.constraint : undefined;
+    if (isPgError(err, '23503')) {
+      const constraint = (err as any).driverError?.constraint;
 
       if (constraint === 'fk_manufacturer_id') {
         return res.status(409).json({ message: "manufacturer doesn't exist" });
@@ -87,12 +91,11 @@ async function addPro(req: Request, res: Response) {
 
       return res.status(409).json({ message: "referenced record doesn't exist" });
     }
-    console.log(err);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
-  } finally {
-    client.release();
   }
 }
+
 async function addDescription(req: Request, res: Response) {
   if (!req.user) {
     return res.status(401).json({ message: 'not authorized' });
@@ -106,22 +109,23 @@ async function addDescription(req: Request, res: Response) {
   }
   const { description, product_id } = Details.data;
   try {
-    const ownership = await checkProductOwnership(pool, product_id, req.user);
+    const ownership = await checkProductOwnership(AppDataSource.manager, product_id, req.user);
     if (!ownership.found) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
     if (!ownership.allowed) {
       return res.status(403).json({ message: 'insufficient permission' });
     }
-    const result = await pool.query(
-      'UPDATE products SET description=$1, updated_at=now() WHERE product_id=$2 AND deleted_at IS NULL RETURNING description ',
-      [description, product_id]
+    const result = await AppDataSource.getRepository(Product).update(
+      { productId: product_id, deletedAt: IsNull() },
+      { description }
     );
-    if (result.rowCount === 0) {
+    if (result.affected === 0) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
     return res.status(200).json({ message: 'success' });
   } catch (err) {
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -139,23 +143,24 @@ async function changeProName(req: Request, res: Response) {
   }
   const { product_name, product_id } = Details.data;
   try {
-    const ownership = await checkProductOwnership(pool, product_id, req.user);
+    const ownership = await checkProductOwnership(AppDataSource.manager, product_id, req.user);
     if (!ownership.found) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
     if (!ownership.allowed) {
       return res.status(403).json({ message: 'insufficient permission' });
     }
-    const result = await pool.query(
-      'UPDATE products SET product_name=$1, updated_at=now() WHERE product_id=$2 AND deleted_at IS NULL RETURNING product_name',
-      [product_name, product_id]
+    const result = await AppDataSource.getRepository(Product).update(
+      { productId: product_id, deletedAt: IsNull() },
+      { productName: product_name }
     );
-    if (result.rowCount === 0) {
+    if (result.affected === 0) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
 
     return res.status(200).json({ message: 'success' });
   } catch (err) {
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -173,22 +178,23 @@ async function changeProPrice(req: Request, res: Response) {
   }
   const { price, product_id } = Details.data;
   try {
-    const ownership = await checkProductOwnership(pool, product_id, req.user);
+    const ownership = await checkProductOwnership(AppDataSource.manager, product_id, req.user);
     if (!ownership.found) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
     if (!ownership.allowed) {
       return res.status(403).json({ message: 'insufficient permission' });
     }
-    const result = await pool.query(
-      'UPDATE products SET price=$1, updated_at=now() WHERE product_id=$2 AND deleted_at IS NULL RETURNING price',
-      [price, product_id]
+    const result = await AppDataSource.getRepository(Product).update(
+      { productId: product_id, deletedAt: IsNull() },
+      { price }
     );
-    if (result.rowCount === 0) {
+    if (result.affected === 0) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
     return res.status(200).json({ message: 'success' });
   } catch (err) {
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -206,22 +212,23 @@ async function changeProQuantity(req: Request, res: Response) {
   }
   const { quantity, product_id } = Details.data;
   try {
-    const ownership = await checkProductOwnership(pool, product_id, req.user);
+    const ownership = await checkProductOwnership(AppDataSource.manager, product_id, req.user);
     if (!ownership.found) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
     if (!ownership.allowed) {
       return res.status(403).json({ message: 'insufficient permission' });
     }
-    const result = await pool.query(
-      'UPDATE products SET quantity=$1, updated_at=now() WHERE product_id=$2 AND deleted_at IS NULL RETURNING quantity',
-      [quantity, product_id]
+    const result = await AppDataSource.getRepository(Product).update(
+      { productId: product_id, deletedAt: IsNull() },
+      { quantity }
     );
-    if (result.rowCount === 0) {
+    if (result.affected === 0) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
     return res.status(200).json({ message: 'success' });
   } catch (err) {
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -239,32 +246,34 @@ async function changeProLowStock(req: Request, res: Response) {
   }
   const { low_stock_threshold, product_id } = Details.data;
   try {
-    const ownership = await checkProductOwnership(pool, product_id, req.user);
+    const repo = AppDataSource.getRepository(Product);
+    const ownership = await checkProductOwnership(AppDataSource.manager, product_id, req.user);
     if (!ownership.found) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
     if (!ownership.allowed) {
       return res.status(403).json({ message: 'insufficient permission' });
     }
-    const results = await pool.query(
-      'SELECT quantity FROM products WHERE product_id=$1 AND deleted_at IS NULL',
-      [product_id]
-    );
-    if (results.rows[0].quantity < low_stock_threshold) {
+    const product = await repo.findOne({
+      where: { productId: product_id, deletedAt: IsNull() },
+      select: { quantity: true },
+    });
+    if (product && product.quantity < low_stock_threshold) {
       return res
         .status(400)
         .json({ message: "low stock threshold can't be greater than quantity" });
     }
-    const result = await pool.query(
-      'UPDATE products SET low_stock_threshold=$1, updated_at=now() WHERE product_id=$2 AND deleted_at IS NULL RETURNING quantity,low_stock_threshold',
-      [low_stock_threshold, product_id]
+    const result = await repo.update(
+      { productId: product_id, deletedAt: IsNull() },
+      { lowStockThreshold: low_stock_threshold }
     );
-    if (result.rowCount === 0) {
+    if (result.affected === 0) {
       return res.status(404).json({ message: 'product_id is invalid ' });
     }
 
     return res.status(200).json({ message: 'success' });
   } catch (err) {
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -282,25 +291,27 @@ async function changeProActive(req: Request, res: Response) {
   }
   const { is_active, product_id } = Details.data;
   try {
-    const ownership = await checkProductOwnership(pool, product_id, req.user);
+    const ownership = await checkProductOwnership(AppDataSource.manager, product_id, req.user);
     if (!ownership.found) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
     if (!ownership.allowed) {
       return res.status(403).json({ message: 'insufficient permission' });
     }
-    const result = await pool.query(
-      'UPDATE products SET is_active=$1, updated_at=now() WHERE product_id=$2 AND deleted_at IS NULL RETURNING is_active',
-      [is_active, product_id]
+    const result = await AppDataSource.getRepository(Product).update(
+      { productId: product_id, deletedAt: IsNull() },
+      { isActive: is_active }
     );
-    if (result.rowCount === 0) {
+    if (result.affected === 0) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
     return res.status(200).json({ message: 'success' });
   } catch (err) {
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
+
 async function changeProManu(req: Request, res: Response) {
   if (!req.user) {
     return res.status(401).json({ message: 'not authorized' });
@@ -314,28 +325,30 @@ async function changeProManu(req: Request, res: Response) {
   }
   const { manufacturer_id, product_id } = Details.data;
   try {
-    const ownership = await checkProductOwnership(pool, product_id, req.user);
+    const ownership = await checkProductOwnership(AppDataSource.manager, product_id, req.user);
     if (!ownership.found) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
     if (!ownership.allowed) {
       return res.status(403).json({ message: 'insufficient permission' });
     }
-    const result = await pool.query(
-      'UPDATE products SET manufacturer_id=$1, updated_at=now() WHERE product_id=$2 AND deleted_at IS NULL RETURNING manufacturer_id',
-      [manufacturer_id, product_id]
+    const result = await AppDataSource.getRepository(Product).update(
+      { productId: product_id, deletedAt: IsNull() },
+      { manufacturerId: manufacturer_id }
     );
-    if (result.rowCount === 0) {
+    if (result.affected === 0) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
     return res.status(200).json({ message: 'success' });
   } catch (err: unknown) {
-    if (err instanceof Error && 'code' in err && err.code == '23503') {
+    if (isPgError(err, '23503')) {
       return res.status(409).json({ message: 'manufacturer dosent exists' });
     }
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
+
 async function changeProCategory(req: Request, res: Response) {
   if (!req.user) {
     return res.status(401).json({ message: 'not authorized' });
@@ -349,40 +362,42 @@ async function changeProCategory(req: Request, res: Response) {
   }
   const { category_id, product_id } = Details.data;
   try {
-    const ownership = await checkProductOwnership(pool, product_id, req.user);
+    const ownership = await checkProductOwnership(AppDataSource.manager, product_id, req.user);
     if (!ownership.found) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
     if (!ownership.allowed) {
       return res.status(403).json({ message: 'insufficient permission' });
     }
-    const categoryCheck = await pool.query(
-      'SELECT category_parent_id FROM categories WHERE category_id=$1 AND deleted_at IS NULL ',
-      [category_id]
-    );
-    if (categoryCheck.rowCount === 0) {
+    const category = await AppDataSource.getRepository(Category).findOne({
+      where: { categoryId: category_id, deletedAt: IsNull() },
+      select: { categoryParentId: true },
+    });
+    if (!category) {
       return res.status(404).json({ message: 'category not found' });
     }
-    if (categoryCheck.rows[0].category_parent_id === null) {
+    if (category.categoryParentId === null) {
       return res
         .status(400)
         .json({ message: 'category must be a subcategory,not a parent category' });
     }
-    const results = await pool.query(
-      'UPDATE product_categories SET category_id=$1 WHERE product_id=$2 RETURNING category_id',
-      [category_id, product_id]
+    const results = await AppDataSource.getRepository(ProductCategory).update(
+      { productId: product_id },
+      { categoryId: category_id }
     );
-    if (results.rowCount === 0) {
+    if (results.affected === 0) {
       return res.status(404).json({ message: 'product not found' });
     }
     return res.status(200).json({ message: 'success' });
   } catch (err: unknown) {
-    if (err instanceof Error && 'code' in err && err.code == '23503') {
+    if (isPgError(err, '23503')) {
       return res.status(409).json({ message: 'category dosent exists' });
     }
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
+
 async function getProsById(req: Request, res: Response) {
   try {
     const Details = ProductIdSchema.safeParse(req.params);
@@ -395,19 +410,19 @@ async function getProsById(req: Request, res: Response) {
     }
     console.log(Details.data);
     const { product_id } = Details.data;
-    const existing = await pool.query(
-      'SELECT * FROM  products WHERE product_id=$1 AND deleted_at IS NULL',
-      [product_id]
-    );
-    if (existing.rowCount === 0) {
+    const existing = await AppDataSource.getRepository(Product).findOne({
+      where: { productId: product_id, deletedAt: IsNull() },
+    });
+    if (!existing) {
       return res.status(404).json({ message: 'product not found' });
     }
-    return res.status(200).json({ message: 'success', data: existing.rows[0] });
+    return res.status(200).json({ message: 'success', data: existing });
   } catch (err) {
-    console.log(err);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
+
 async function getPros(req: Request, res: Response) {
   const paginate = paginationQuery.safeParse(req.query);
   console.log(paginate.error?.issues);
@@ -422,16 +437,18 @@ async function getPros(req: Request, res: Response) {
     const { limit, page } = paginate.data;
     const offset = (page - 1) * limit;
 
-    const existing = await pool.query(
-      'SELECT * FROM products WHERE deleted_at IS NULL ORDER BY product_id LIMIT $1 OFFSET $2',
-      [limit, offset]
-    );
-    if (existing.rowCount === 0) {
+    const existing = await AppDataSource.getRepository(Product).find({
+      where: { deletedAt: IsNull() },
+      order: { productId: 'ASC' },
+      take: limit,
+      skip: offset,
+    });
+    if (existing.length === 0) {
       return res.status(404).json({ message: 'products not found' });
     }
-    return res.status(200).json({ message: 'success', data: existing.rows });
+    return res.status(200).json({ message: 'success', data: existing });
   } catch (err) {
-    console.log(err);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
@@ -452,19 +469,25 @@ async function getProsByCategory(req: Request, res: Response) {
     const { limit, page } = paginate.data;
     const offset = (page - 1) * limit;
     const { category_id } = category.data;
-    const existing = await pool.query(
-      'SELECT p.* FROM products p JOIN product_categories pc ON pc.product_id = p.product_id WHERE pc.category_id = $3 AND p.deleted_at IS NULL ORDER BY p.product_id LIMIT $1 OFFSET $2',
-      [limit, offset, category_id]
-    );
-    if (existing.rowCount === 0) {
+    const existing = await AppDataSource.getRepository(Product)
+      .createQueryBuilder('p')
+      .innerJoin(ProductCategory, 'pc', 'pc.productId = p.productId')
+      .where('pc.categoryId = :category_id', { category_id })
+      .andWhere('p.deletedAt IS NULL')
+      .orderBy('p.productId', 'ASC')
+      .limit(limit)
+      .offset(offset)
+      .getMany();
+    if (existing.length === 0) {
       return res.status(404).json({ message: 'products not found' });
     }
-    return res.status(200).json({ message: 'success', data: existing.rows });
+    return res.status(200).json({ message: 'success', data: existing });
   } catch (err) {
-    console.log(err);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
+
 async function deleteProduct(req: Request, res: Response) {
   if (!req.user) {
     return res.status(401).json({ message: 'not authorized' });
@@ -478,26 +501,27 @@ async function deleteProduct(req: Request, res: Response) {
   }
   const { product_id } = Details.data;
   try {
-    const ownership = await checkProductOwnership(pool, product_id, req.user);
+    const ownership = await checkProductOwnership(AppDataSource.manager, product_id, req.user);
     if (!ownership.found) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
     if (!ownership.allowed) {
       return res.status(403).json({ message: 'insufficient permission' });
     }
-    const result = await pool.query(
-      'UPDATE products SET updated_at=now(), deleted_at=now() WHERE product_id=$1 AND deleted_at IS NULL RETURNING product_name',
-      [product_id]
-    );
-    if (result.rowCount === 0) {
+    const result = await AppDataSource.getRepository(Product).softDelete({
+      productId: product_id,
+      deletedAt: IsNull(),
+    });
+    if (result.affected === 0) {
       return res.status(404).json({ message: 'product dosent exists' });
     }
     return res.status(200).json({ message: 'success' });
   } catch (err) {
-    console.log(err);
+    logger(err, projectstatus);
     return res.status(500).json({ message: 'unexpected error' });
   }
 }
+
 export {
   addPro,
   addDescription,

@@ -3,10 +3,13 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { api } from './api/api.ts';
 import cookieParser from 'cookie-parser';
+import { createGeneralRateLimit } from './config/rateLimit.middleware.ts';
+
 const app = express();
 app.use(cookieParser());
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json());
+app.use(createGeneralRateLimit());
 app.use(
   cors({
     origin: 'http://localhost:3000',

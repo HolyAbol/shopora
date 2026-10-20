@@ -59,6 +59,12 @@ export const changeOrderStatusSchema = z.object({
     'cancelled',
   ]),
 });
+export const adminFindUserSchema = z.object({
+  user_id: z.coerce.number().int().positive(),
+});
+export const adminFindOrderSchema = z.object({
+  order_id: z.coerce.number().int().positive(),
+});
 export const adminProductQuerySchema = z.object({
   sortBy: z.string().optional(),
   order: z.enum(['asc', 'desc']).default('desc'),

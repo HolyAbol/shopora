@@ -58,7 +58,7 @@ export class Order {
   @Column({ type: 'varchar', length: 20, default: 'pending_payment' })
   status: OrderStatus;
 
-  @Column({ name: 'payment_method', type: 'varchar', length: 20 })
+  @Column({ name: 'payment_method', type: 'varchar', length: 20, default: 'pending_payment' })
   paymentMethod: PaymentMethod;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp', nullable: true })

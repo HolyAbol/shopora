@@ -1,42 +1,46 @@
-import { DatabaseError, Pool, PoolClient } from "pg";
-import { pool } from "../services/db/db";
-import { QueryFailedError } from "typeorm";
-import { Cart } from "./cart/carts.entity";
-import { Entity } from "typeorm";
-type Queryable = Pool | PoolClient;
-async function getUserAddress(user_id: number, db: Queryable) {
-  const check = await db.query(
-    "SELECT * FROM addresses WHERE user_id=$1 AND deleted_at IS NULL",
-    [user_id],
-  );
-  return check;
+import { DatabaseError, Pool, PoolClient } from 'pg';
+import { QueryFailedError } from 'typeorm';
+import { Cart } from './cart/carts.entity';
+import { EntityManager, FindOptionsWhere, In, IsNull } from 'typeorm';
+import { Product } from './products/product.entity';
+import { CartItem } from './cart/cartItems.entity';
+import { ProductCategory } from './category/productCategory.entity';
+import { AppDataSource } from '../services/db/data-sources';
+import { Address } from './address/addresses.entity';
+import { Order } from './order/orders.entity';
+
+async function getUserAddress(user_id: number, db?: EntityManager): Promise<Address | null> {
+  const manager = db ?? AppDataSource.manager;
+  const check = manager.findOne(Address, { where: { userId: user_id } });
+  return check ?? null;
 }
-async function cartExistence(
-  user_id: number,
-  db: EntityManager = AppDataSource.manager,
-): Promise<boolean> {
-  return db.exists(Cart, { where: { userId: user_id } });
+async function cartExistence(user_id: number, db?: EntityManager): Promise<number | null> {
+  const manager = db ?? AppDataSource.manager;
+  const result = await manager.findOne(Cart, {
+    where: { userId: user_id },
+    select: { cartId: true },
+  });
+  return result?.cartId ?? null;
 }
 
-async function cartCreator(user_id: number, db: EntityManager) {
-  const repo = db.getRepository(Cart);
+async function cartCreator(user_id: number, db?: EntityManager) {
+  const manager = db ?? AppDataSource.manager;
+  const repo = manager.getRepository(Cart);
   const result = repo.create({ userId: user_id });
-  return result;
+  return await manager.save(result);
 }
-async function checkCartItems(
-  user_id: number,
-  db: EntityManager = AppDataSource.manager,
-) {
-  const rows = await db
-    .createQueryBuilder(CartItem, "ci")
-    .innerJoin("ci.cart", "c")
-    .innerJoin("ci.product", "p")
-    .select("c.cartId", "cart_id")
-    .addSelect("ci.productId", "product_id")
-    .addSelect("ci.quantity", "quantity")
-    .addSelect("p.productName", "product_name")
-    .addSelect("p.price", "price")
-    .where("c.userId = :user_id", { user_id })
+async function checkCartItems(user_id: number, db?: EntityManager) {
+  const manager = db ?? AppDataSource.manager;
+  const rows = await manager
+    .createQueryBuilder(CartItem, 'ci')
+    .innerJoin('ci.cart', 'c')
+    .innerJoin('ci.product', 'p')
+    .select('c.cartId', 'cart_id')
+    .addSelect('ci.productId', 'product_id')
+    .addSelect('ci.quantity', 'quantity')
+    .addSelect('p.productName', 'product_name')
+    .addSelect('p.price', 'price')
+    .where('c.userId = :user_id', { user_id })
     .getRawMany<{
       cart_id: number;
       product_id: number;
@@ -45,75 +49,53 @@ async function checkCartItems(
       price: number;
     }>();
 
-  return rows;
+  return rows ?? 0;
 }
-async function checkOrderItems(
-  user_id: number,
-  order_id: number,
-  db: Queryable,
-) {
-  const result = await db.query(
-    "SELECT * FROM orders o JOIN order_items oi ON oi.order_id =o.order_id WHERE o.order_id=$1 AND o.user_id=$2 AND o.deleted_at IS NULL AND oi.deleted_at IS NULL",
-    [order_id, user_id],
-  );
+async function checkOrderItems(user_id: number, order_id: number, db?: EntityManager) {
+  const manager = db ?? AppDataSource.manager;
+  const result = await manager
+    .getRepository(Order)
+    .createQueryBuilder('o')
+    .withDeleted()
+    .innerJoinAndSelect('o.items', 'oi', 'oi.deleted_at IS NULL')
+    .innerJoinAndSelect('o.address', 'a')
+    .innerJoinAndSelect('o.user', 'u')
+    .addSelect(['u.email', 'u.phoneNumber', 'u.firstName', 'u.lastName'])
+    .where('o.order_id = :order_id', { order_id })
+    .andWhere('o.user_id = :user_id', { user_id })
+    .andWhere('o.deleted_at IS NULL')
+    .getOne();
   return result;
 }
-async function isOrderCancelled(
-  user_id: number,
-  order_id: number,
-  db: Queryable,
-) {
-  const result = await db.query(
-    `SELECT * FROM orders WHERE order_id=$1 AND user_id=$2 AND status != 'cancelled' AND deleted_at IS NULL`,
-    [order_id, user_id],
-  );
+async function isOrderCancelled(user_id: number, order_id: number, db?: EntityManager) {
+  const manager = db ?? AppDataSource.manager;
+  const result = await manager.findOne(Order, {
+    where: {
+      orderId: order_id,
+      userId: user_id,
+      status: 'pending_payment',
+      deletedAt: IsNull(),
+    },
+  });
   return result;
 }
-async function findProsByOwnerId(owner_id: number, db: Queryable) {
-  const result = await pool.query(
-    "SELECT p.* FROM products p JOIN manufacturers m ON p.manufacturer_id = m.manufacturer_id WHERE m.owner_id = $1 AND p.deleted_at IS NULL AND m.deleted_at IS NULL",
-    [owner_id],
-  );
-  return result.rows;
-}
-async function findManusByOwnerId(owner_id: number, db: Queryable) {
-  const result = await pool.query(
-    "SELECT * FROM manufacturers WHERE owner_id = $1 AND deleted_at IS NULL",
-    [owner_id],
-  );
-  return result.rows;
-}
-async function getShopIdByOwner(
-  owner_id: number,
-  db: Queryable,
-): Promise<number | null> {
-  const result = await db.query(
-    "SELECT shop_id FROM shops WHERE owner_id=$1 AND deleted_at IS NULL",
-    [owner_id],
-  );
-  return result.rows[0]?.shop_id ?? null;
-}
-type projectStatus = "online" | "offline";
+type projectStatus = 'online' | 'offline';
 const projectstatus = process.env.CURRENT_STATUS as projectStatus;
-function deployment(err: any, status: projectStatus) {
-  if (status === "offline") {
-    console.log(err);
+function logger(err: unknown, status: projectStatus) {
+  if (status === 'offline') {
+    console.error(err);
+    return;
   }
+  console.error(err instanceof Error ? `${err.name}: ${err.message}` : err);
 }
 const isPgError = (err: unknown, code: string) =>
   err instanceof QueryFailedError &&
   err.driverError instanceof DatabaseError &&
   err.driverError.code === code;
 
-import { EntityManager, FindOptionsWhere, In, IsNull } from "typeorm";
-import { Product } from "./products/product.entity";
-import { CartItem } from "./cart/cartItems.entity";
-import { ProductCategory } from "./category/productCategory.entity";
-import { AppDataSource } from "../services/db/data-sources";
-
 async function softDeleteProducts(
   manager: EntityManager,
-  where: FindOptionsWhere<Product>,
+  where: FindOptionsWhere<Product>
 ): Promise<number> {
   const products = await manager.find(Product, {
     where,
@@ -144,10 +126,7 @@ export {
   checkOrderItems,
   isOrderCancelled,
   cartCreator,
-  findManusByOwnerId,
-  findProsByOwnerId,
-  getShopIdByOwner,
-  deployment,
+  logger,
   projectstatus,
   isPgError,
   softDeleteProducts,
