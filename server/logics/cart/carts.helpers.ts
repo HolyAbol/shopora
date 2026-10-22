@@ -1,9 +1,7 @@
 import { EntityManager } from 'typeorm';
 import { AppDataSource } from '../../configs/data-sources';
-import { pool } from '../../services/db/db';
 import { Product } from '../products/product.entity';
 import { CartItem } from './cartItems.entity';
-import { $ZodNull } from 'zod/v4/core';
 
 async function checkStock(product_id: number, db?: EntityManager): Promise<number | null> {
   const manager = db ?? AppDataSource.manager;

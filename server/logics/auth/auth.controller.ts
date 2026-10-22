@@ -60,7 +60,7 @@ async function login(req: Request, res: Response) {
       }
       const checkPass = await compare(userPassword, result.password);
       if (!checkPass) {
-        res.status(401).json({ message: 'invalid creds' });
+        return res.status(401).json({ message: 'invalid creds' });
       }
 
       await manager.update(User, { userId: result.userId }, { lastActivity: () => 'NOW()' });

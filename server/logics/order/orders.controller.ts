@@ -164,7 +164,7 @@ async function getOrdersById(req: Request, res: Response) {
   try {
     const result = await checkOrderItems(user_id, order_id);
     console.log(result);
-    if (!result === null) {
+    if (result === null) {
       return res.status(404).json({ message: 'orders not found' });
     }
     return res.status(200).json({ message: 'success', data: result });
@@ -199,6 +199,10 @@ async function cancelOrder(req: Request, res: Response) {
       );
       if (cancel.affected === 0) {
         return { error: 'cant_cancel' } as const;
+      }
+      const items = await manager.find(OrderItem, { where: { orderId: order_id } });
+      for (const item of items) {
+        await manager.increment(Product, { productId: item.productId }, 'quantity', item.quantity);
       }
       return { item: cancel } as const;
     });

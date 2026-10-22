@@ -1,4 +1,4 @@
-import { DatabaseError, Pool, PoolClient } from 'pg';
+import { DatabaseError } from 'pg';
 import { QueryFailedError } from 'typeorm';
 import { Cart } from './cart/carts.entity';
 import { EntityManager, FindOptionsWhere, In, IsNull } from 'typeorm';

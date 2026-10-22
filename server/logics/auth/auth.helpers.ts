@@ -1,9 +1,8 @@
 import bcrypt from 'bcrypt';
 import { Response } from 'express';
-import { Pool, PoolClient } from 'pg';
 import { User } from './user.entity';
 import { EntityManager } from 'typeorm';
-type Queryable = Pool | PoolClient;
+
 async function findUser(username: string, db: EntityManager) {
   const repo = db.getRepository(User);
   const result = repo.findOne({

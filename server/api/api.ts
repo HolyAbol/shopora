@@ -12,7 +12,7 @@ import { shopsRouter } from '../logics/shop/shops.router.ts';
 import { adminRouter } from '../admin/admin.router.ts';
 import swaggerDocs from '../configs/swagger.ts';
 import { createLoginRateLimit } from '../configs/rateLimit.middleware.ts';
-api.use('/api/auth', Authrouter, createLoginRateLimit());
+api.use('/api/auth', createLoginRateLimit(), Authrouter);
 api.use('/api/profiles', Profilerouter);
 api.use('/api/manus', manufacturerRouter);
 api.use('/api/cats', categoriesRouter);
