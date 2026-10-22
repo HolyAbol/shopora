@@ -5,7 +5,7 @@ import { IsNull } from 'typeorm';
 import { AppDataSource } from '../../configs/data-sources';
 import { Shop } from './shop.entity';
 import { Product } from '../products/product.entity';
-import { softDeleteProducts } from '../shared.helpers';
+import { softDeleteProducts } from '../products/products.helper';
 import { shopChangeNameSchema, shopCreateSchema, shopDeletionSchema } from './shops.schema';
 async function createShop(req: Request, res: Response) {
   if (!req.user) {

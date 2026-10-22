@@ -3,7 +3,8 @@ import { Product } from './product.entity';
 import { Shop } from '../shop/shop.entity';
 import { Category } from '../category/category.entity';
 import { ProductCategory } from '../category/productCategory.entity';
-
+import { In, FindOptionsWhere } from 'typeorm';
+import { CartItem } from '../cart/cartItems.entity';
 async function checkProductOwnership(
   db: EntityManager,
   product_id: number,
@@ -34,5 +35,30 @@ async function assignCategories(product_id: number, category_id: number, db: Ent
   }
   await db.insert(ProductCategory, { productId: product_id, categoryId: category_id });
 }
+async function softDeleteProducts(
+  manager: EntityManager,
+  where: FindOptionsWhere<Product>
+): Promise<number> {
+  const products = await manager.find(Product, {
+    where,
+    select: { productId: true },
+  });
+  const ids = products.map((p) => p.productId);
+  if (ids.length === 0) return 0;
 
-export { checkProductOwnership, assignCategories };
+  await manager.softDelete(CartItem, {
+    productId: In(ids),
+    deletedAt: IsNull(),
+  });
+  await manager.softDelete(ProductCategory, {
+    productId: In(ids),
+    deletedAt: IsNull(),
+  });
+  await manager.softDelete(Product, {
+    productId: In(ids),
+    deletedAt: IsNull(),
+  });
+
+  return ids.length;
+}
+export { checkProductOwnership, assignCategories, softDeleteProducts };

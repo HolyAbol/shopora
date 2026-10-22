@@ -11,7 +11,8 @@ import z from 'zod';
 import { AppDataSource } from '../../configs/data-sources';
 import { Manufacturer } from './manufacture.entity';
 import { IsNull, QueryFailedError } from 'typeorm';
-import { softDeleteProducts, logger, projectstatus } from '../shared.helpers';
+import { logger, projectstatus } from '../shared.helpers';
+import { softDeleteProducts } from '../products/products.helper';
 
 async function addManus(req: Request, res: Response) {
   if (!req.user) {
