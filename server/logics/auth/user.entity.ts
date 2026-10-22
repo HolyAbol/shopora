@@ -9,10 +9,10 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
 } from 'typeorm';
-import { Cart } from '../logics/cart/carts.entity';
-import { Address } from '../logics/address/addresses.entity';
-import { Order } from '../logics/order/orders.entity';
-import { Shop } from '../logics/shop/shop.entity';
+import { Cart } from '../cart/carts.entity';
+import { Address } from '../address/addresses.entity';
+import { Order } from '../order/orders.entity';
+import { Shop } from '../shop/shop.entity';
 export type UserRole = 'user' | 'admin' | 'owner';
 
 @Entity('users')

@@ -15,8 +15,8 @@ import {
   adminFindOrderSchema,
 } from './admin.schema';
 import z from 'zod';
-import { AppDataSource } from '../services/db/data-sources';
-import { User } from '../services/user.entity';
+import { AppDataSource } from '../configs/data-sources';
+import { User } from '../logics/auth/user.entity';
 import { Shop } from '../logics/shop/shop.entity';
 import { Manufacturer } from '../logics/manufacture/manufacture.entity';
 import { Category } from '../logics/category/category.entity';

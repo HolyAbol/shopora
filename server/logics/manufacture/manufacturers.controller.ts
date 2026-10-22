@@ -8,7 +8,7 @@ import {
 import { DatabaseError } from 'pg';
 import { paginationQuery } from '../shared.schemas';
 import z from 'zod';
-import { AppDataSource } from '../../services/db/data-sources';
+import { AppDataSource } from '../../configs/data-sources';
 import { Manufacturer } from './manufacture.entity';
 import { IsNull, QueryFailedError } from 'typeorm';
 import { softDeleteProducts, logger, projectstatus } from '../shared.helpers';

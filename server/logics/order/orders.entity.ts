@@ -10,7 +10,7 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
 } from 'typeorm';
-import { User } from '../../services/user.entity';
+import { User } from '../auth/user.entity';
 import { Address } from '../address/addresses.entity';
 import { OrderItem } from './orderItems.entity';
 export type OrderStatus =

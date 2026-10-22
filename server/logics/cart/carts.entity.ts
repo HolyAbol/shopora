@@ -10,7 +10,7 @@ import {
   DeleteDateColumn,
   Unique,
 } from 'typeorm';
-import { User } from '../../services/user.entity';
+import { User } from '../auth/user.entity';
 import { CartItem } from './cartItems.entity';
 @Entity({ name: 'carts' })
 @Unique('uq_user_id', ['userId'])

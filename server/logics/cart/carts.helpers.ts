@@ -1,5 +1,5 @@
 import { EntityManager } from 'typeorm';
-import { AppDataSource } from '../../services/db/data-sources';
+import { AppDataSource } from '../../configs/data-sources';
 import { pool } from '../../services/db/db';
 import { Product } from '../products/product.entity';
 import { CartItem } from './cartItems.entity';

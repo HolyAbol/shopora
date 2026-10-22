@@ -1,5 +1,4 @@
-
-import { AppDataSource } from '../services/db/data-sources';
+import { AppDataSource } from '../configs/data-sources';
 import { Shop } from '../logics/shop/shop.entity';
 import { EntityManager, IsNull } from 'typeorm';
 type status = 'approved' | 'rejected';

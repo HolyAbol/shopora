@@ -6,7 +6,7 @@ import {
   changeManusName,
   deleteManus,
 } from './manufacturers.controller.ts';
-import { loginCheck, requireRole } from '../../services/auth/auth.middleware.ts';
+import { loginCheck, requireRole } from '../auth/auth.middleware.ts';
 const manufacturerRouter = express.Router();
 
 /**

@@ -1,0 +1,9 @@
+node_modules/
+*.pem
+.env
+dist/
+*.log
+.prettierrc.json
+eslint.config.ts
+note.md
+.prettierrcignore

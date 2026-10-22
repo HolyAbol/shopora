@@ -1,5 +1,5 @@
 import express from 'express';
-import { loginCheck, requireRole } from '../services/auth/auth.middleware';
+import { loginCheck, requireRole } from '../logics/auth/auth.middleware';
 import {
   addManus,
   changeManusName,
@@ -19,7 +19,7 @@ import {
   reviewShopRequest,
   updateOrderStatusAdmin,
 } from './admin.controller';
-import { adminReadLimiter, adminWriteLimiter } from '../config/rateLimit.middleware';
+import { adminReadLimiter, adminWriteLimiter } from '../configs/rateLimit.middleware';
 
 const adminRouter = express.Router();
 const admin = requireRole('admin');

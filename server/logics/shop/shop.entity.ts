@@ -10,7 +10,7 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
 } from 'typeorm';
-import { User } from '../../services/user.entity';
+import { User } from '../auth/user.entity';
 import { Product } from '../products/product.entity';
 
 export type ShopStatus = 'waiting for approval' | 'approved' | 'rejected';

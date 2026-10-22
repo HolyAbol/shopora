@@ -3,7 +3,7 @@ import z from 'zod';
 import { addItemToCart, cartItemQuantity, removeItemFromcart } from './carts.schema';
 import { checkStock, currentInCart } from './carts.helpers';
 import { cartExistence, checkCartItems, logger, projectstatus } from '../shared.helpers';
-import { AppDataSource } from '../../services/db/data-sources';
+import { AppDataSource } from '../../configs/data-sources';
 import { CartItem } from './cartItems.entity';
 import { IsNull } from 'typeorm';
 async function getCarts(req: Request, res: Response) {

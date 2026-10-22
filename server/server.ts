@@ -1,20 +1,12 @@
-import { pool } from './services/db/db.ts';
 import app from './app';
 import http from 'http';
 import https from 'https';
-import { AppDataSource } from './services/db/data-sources.ts';
+import { AppDataSource } from './configs/data-sources.ts';
 import path from 'path';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 import fs from 'fs';
-try {
-  await pool.query('SELECT 1');
-  console.log('Connected to PostgreSQL');
-} catch (err) {
-  console.error('PostgreSQL connection failed:', err);
-  throw err;
-}
 try {
   await AppDataSource.initialize();
   console.log('TypeORM connected');

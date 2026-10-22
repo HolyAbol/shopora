@@ -1,5 +1,5 @@
 import express from 'express';
-import { loginCheck } from '../../services/auth/auth.middleware';
+import { loginCheck } from '../auth/auth.middleware';
 import { getCarts, addItemsToCart, changeItemQuantity, removeItem } from './carts.controller';
 
 const cartsRouter = express.Router();

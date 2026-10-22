@@ -2,10 +2,10 @@ import { findUser, passHasher, compare, clearCookie } from './auth.helpers.ts';
 import { Response, Request } from 'express';
 import jwt from 'jsonwebtoken';
 import { loginSchema, signupSchema } from './auth.schemas.ts';
-import { cartCreator, logger, projectstatus } from '../../logics/shared.helpers.ts';
+import { cartCreator, logger, projectstatus } from '../shared.helpers.ts';
 import z from 'zod';
-import { AppDataSource } from '../db/data-sources.ts';
-import { User } from '../user.entity.ts';
+import { AppDataSource } from '../../configs/data-sources.ts';
+import { User } from './user.entity.ts';
 async function signup(req: Request, res: Response) {
   const creds = signupSchema.safeParse(req.body);
   if (!creds.success) {

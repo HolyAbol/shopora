@@ -1,6 +1,6 @@
 import express from 'express';
 import { addAddress, changeAddress, deleteAddress } from './addresses.controller.ts';
-import { loginCheck } from '../../services/auth/auth.middleware.ts';
+import { loginCheck } from '../auth/auth.middleware.ts';
 const addressesRouter = express.Router();
 
 /**

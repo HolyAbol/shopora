@@ -7,3 +7,5 @@ dist/
 eslint.config.ts
 note.md
 .prettierrcignore
+.vscode
+.gitignore

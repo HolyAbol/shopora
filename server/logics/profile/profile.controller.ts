@@ -1,8 +1,8 @@
 import { Response, Request } from 'express';
 import { passHasher, compare, clearCookie } from '../auth/auth.helpers.ts';
 import { userInfoSchema, changeUsernameSchema, changePasswordSchema } from './profile.schemas.ts';
-import { User } from '../user.entity.ts';
-import { AppDataSource } from '../db/data-sources.ts';
+import { User } from '../auth/user.entity.ts';
+import { AppDataSource } from '../../configs/data-sources.ts';
 import z from 'zod';
 async function getProfile(req: Request, res: Response) {
   if (!req.user) {

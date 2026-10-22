@@ -6,7 +6,7 @@ import {
   changeCategory,
   deleteCategory,
 } from './category.controller';
-import { loginCheck, requireRole } from '../../services/auth/auth.middleware';
+import { loginCheck, requireRole } from '../auth/auth.middleware';
 const admin = requireRole('admin');
 const categoriesRouter = express.Router();
 

@@ -14,7 +14,7 @@ import {
   getProsById,
   deleteProduct,
 } from './product.controller';
-import { loginCheck, requireRole } from '../../services/auth/auth.middleware';
+import { loginCheck, requireRole } from '../auth/auth.middleware';
 const productsRouter = express.Router();
 
 /**

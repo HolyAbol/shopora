@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { api } from './api/api.ts';
 import cookieParser from 'cookie-parser';
-import { createGeneralRateLimit } from './config/rateLimit.middleware.ts';
+import { createGeneralRateLimit } from './configs/rateLimit.middleware.ts';
 
 const app = express();
 app.use(cookieParser());

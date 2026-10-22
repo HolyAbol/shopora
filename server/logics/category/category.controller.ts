@@ -3,7 +3,7 @@ import { DatabaseError } from 'pg';
 import { addCategorySchema, categoryChange, categoryID } from './category.schema';
 import { paginationQuery } from '../shared.schemas';
 import z from 'zod';
-import { AppDataSource } from '../../services/db/data-sources';
+import { AppDataSource } from '../../configs/data-sources';
 import { ProductCategory } from './productCategory.entity';
 import { Product } from '../products/product.entity';
 import { CartItem } from '../cart/cartItems.entity';

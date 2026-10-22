@@ -11,7 +11,7 @@ import {
   projectstatus,
 } from '../shared.helpers';
 import { paginationQuery } from '../shared.schemas';
-import { AppDataSource } from '../../services/db/data-sources';
+import { AppDataSource } from '../../configs/data-sources';
 import { Product } from '../products/product.entity';
 import { Order } from './orders.entity';
 import { OrderItem } from './orderItems.entity';

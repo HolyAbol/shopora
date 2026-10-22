@@ -1,5 +1,5 @@
-import { loginCheck } from '../../services/auth/auth.middleware';
-import { requireRole } from '../../services/auth/auth.middleware';
+import { loginCheck } from '../auth/auth.middleware';
+import { requireRole } from '../auth/auth.middleware';
 import { getShop, createShop, updateShop, deleteShop } from './shops.controller';
 import express from 'express';
 

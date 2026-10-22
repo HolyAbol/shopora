@@ -1,6 +1,6 @@
 import express from 'express';
 import { cancelOrder, createOrder, getOrders, getOrdersById } from './orders.controller.ts';
-import { loginCheck } from '../../services/auth/auth.middleware.ts';
+import { loginCheck } from '../auth/auth.middleware.ts';
 
 const ordersRouter = express.Router();
 

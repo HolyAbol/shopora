@@ -3,7 +3,7 @@ import { pool } from '../../services/db/db';
 import z from 'zod';
 import { addressDetails } from './addresses.schema';
 import { logger, getUserAddress, projectstatus } from '../shared.helpers';
-import { AppDataSource } from '../../services/db/data-sources';
+import { AppDataSource } from '../../configs/data-sources';
 import { Address } from './addresses.entity';
 import { IsNull } from 'typeorm';
 async function addAddress(req: Request, res: Response) {

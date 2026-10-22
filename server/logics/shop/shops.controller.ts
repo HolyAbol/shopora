@@ -2,7 +2,7 @@ import { Response, Request } from 'express';
 import z from 'zod';
 import { isPgError, logger, projectstatus } from '../shared.helpers';
 import { IsNull } from 'typeorm';
-import { AppDataSource } from '../../services/db/data-sources';
+import { AppDataSource } from '../../configs/data-sources';
 import { Shop } from './shop.entity';
 import { Product } from '../products/product.entity';
 import { softDeleteProducts } from '../shared.helpers';

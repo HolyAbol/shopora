@@ -5,7 +5,7 @@ import { EntityManager, FindOptionsWhere, In, IsNull } from 'typeorm';
 import { Product } from './products/product.entity';
 import { CartItem } from './cart/cartItems.entity';
 import { ProductCategory } from './category/productCategory.entity';
-import { AppDataSource } from '../services/db/data-sources';
+import { AppDataSource } from '../configs/data-sources';
 import { Address } from './address/addresses.entity';
 import { Order } from './order/orders.entity';
 

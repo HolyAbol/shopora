@@ -1,7 +1,7 @@
 import { Response, Request } from 'express';
 import z from 'zod';
 import { IsNull } from 'typeorm';
-import { AppDataSource } from '../../services/db/data-sources';
+import { AppDataSource } from '../../configs/data-sources';
 import { isPgError, logger, projectstatus } from '../shared.helpers';
 import { paginationQuery } from '../shared.schemas';
 import { Product } from './product.entity';
