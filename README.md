@@ -1,29 +1,30 @@
 # Shopora
 
-A production-inspired e-commerce backend built with Node.js, Express, and TypeScript.
+[🇬🇧 English](README.en.md) | [🇮🇷 فارسی](README.md)
+یک بک‌اند فروشگاهی با الهام از معماری پروژه‌های واقعی، ساخته‌شده با Node.js، Express و TypeScript.
 
-## Overview
+## معرفی پروژه
 
-Shopora is an e-commerce platform inspired by well-known online marketplaces such as Digikala.
+Shopora یک پلتفرم تجارت الکترونیک است که از بازارگاه‌های آنلاین شناخته‌شده‌ای مانند دیجی‌کالا الهام گرفته است.
 
-The project focuses on backend architecture, clean code practices, scalability, and real-world software engineering concepts rather than frontend development.
+تمرکز این پروژه بر معماری بک‌اند، اصول کدنویسی تمیز (Clean Code)، مقیاس‌پذیری و مفاهیم مهندسی نرم‌افزار در دنیای واقعی است، نه توسعه فرانت‌اند.
 
-## Goals
+## اهداف پروژه
 
-The main goals of this project are:
+اهداف اصلی این پروژه عبارت‌اند از:
 
-- Learn enterprise backend architecture
-- Build a scalable REST API
-- Practice authentication and authorization
-- Implement Role-Based Access Control (RBAC)
-- Use Redis for caching and performance optimization
-- Implement file uploads using Object Storage(Soon)
-- Work with background jobs (Cron Jobs)(Soon)
-- Document APIs with Swagger
-- Containerize the application using Docker(Soon)
-- Deploy a production-ready backend
+- یادگیری معماری بک‌اند در سطح سازمانی (Enterprise)
+- ساخت یک REST API مقیاس‌پذیر
+- تمرین احراز هویت و مجوزدهی
+- پیاده‌سازی کنترل دسترسی مبتنی بر نقش (RBAC)
+- استفاده از Redis برای کش‌کردن داده‌ها و بهینه‌سازی عملکرد
+- پیاده‌سازی آپلود فایل با استفاده از فضای ذخیره‌سازی اشیا (به‌زودی)
+- کار با وظایف پس‌زمینه (Cron Jobs) (به‌زودی)
+- مستندسازی APIها با Swagger
+- کانتینرسازی برنامه با Docker (به‌زودی)
+- استقرار یک بک‌اند آماده برای محیط عملیاتی (Production)
 
-## Tech Stack
+## فناوری‌های مورد استفاده (Tech Stack)
 
 - Node.js
 - Express.js
@@ -36,165 +37,168 @@ The main goals of this project are:
 - Swagger (OpenAPI)
 - Docker
 - Docker Compose
-- MinIO (S3-Compatible Object Storage)
+- MinIO (فضای ذخیره‌سازی اشیای سازگار با S3)
 
-## Database Schema
+## ساختار پایگاه داده
 
-The database was designed around 11 core tables, modeling one-to-one, one-to-many, and many-to-many relationships (with junction tables), a self-referencing hierarchy for nested categories, and price/quantity snapshotting for order history integrity.
+پایگاه داده بر اساس ۱۱ جدول اصلی طراحی شده است. این جداول روابط یک‌به‌یک، یک‌به‌چند و چندبه‌چند (با استفاده از جداول واسط)، ساختار درختی دسته‌بندی‌های تو‌در‌تو با ارجاع به خود و همچنین ذخیره‌سازی snapshot قیمت و تعداد محصولات برای حفظ صحت تاریخچه سفارش‌ها را مدل‌سازی می‌کنند.
 
-![ERD Diagram](docs/erd-diagram.png)
+![نمودار ارتباط موجودیت‌های پایگاه داده (ERD)](docs/erd-diagram.png)
 
-Full SQL schema: [`database/schema.sql`](database/schema.sql)
+**فایل کامل ساختار SQL:** [`database/schema.sql`](database/schema.sql)
 
-**Tables:**
+### جدول‌های پایگاه داده
 
-| Table              | Purpose                                                        |
-| ------------------ | -------------------------------------------------------------- |
-| `users`            | User accounts, credentials, and roles                          |
-| `products`         | Product catalog                                                |
-| `manufacturers`    | Brands/manufacturers (one-to-many with products)               |
-| `categories`       | Nested product categories (self-referencing)                   |
-| `product_category` | Many-to-many junction between products and categories          |
-| `carts`            | One cart per user                                              |
-| `cart_items`       | Products inside a cart                                         |
-| `addresses`        | User shipping addresses (one-to-many)                          |
-| `orders`           | Placed orders                                                  |
-| `order_items`      | Snapshot of purchased products (price locked at purchase time) |
-| `shops`            | Users owned shop                                               |
+| جدول               | کاربرد                                                             |
+| ------------------ | ------------------------------------------------------------------ |
+| `users`            | حساب‌های کاربری، اطلاعات احراز هویت و نقش‌ها                       |
+| `products`         | کاتالوگ محصولات                                                    |
+| `manufacturers`    | برندها و تولیدکنندگان؛ رابطه یک‌به‌چند با محصولات                  |
+| `categories`       | دسته‌بندی‌های تو‌در‌تو با ساختار درختی                             |
+| `product_category` | جدول واسط برای ایجاد رابطه چندبه‌چند میان محصولات و دسته‌بندی‌ها   |
+| `carts`            | سبد خرید هر کاربر                                                  |
+| `cart_items`       | محصولات موجود در سبد خرید                                          |
+| `addresses`        | آدرس‌های ارسال هر کاربر؛ رابطه یک‌به‌چند                           |
+| `orders`           | سفارش‌های ثبت‌شده                                                  |
+| `order_items`      | snapshot اطلاعات محصولات خریداری‌شده، شامل قیمت ثبت‌شده هنگام خرید |
+| `shops`            | فروشگاه‌های متعلق به کاربران                                       |
 
-## Main Features
+## قابلیت‌های اصلی
 
-### Authentication
+### احراز هویت (Authentication)
 
-- User Registration
-- User Login
-- JWT Authentication
-- Logout
-- Password Hashing
+- ثبت‌نام کاربران
+- ورود کاربران
+- احراز هویت با JWT
+- خروج از حساب کاربری
+- هش‌کردن رمزهای عبور
 
-### Authorization
+### مجوزدهی (Authorization)
 
-- Role-Based Access Control (RBAC)
-- Roles: User, Admin, Owner
+- کنترل دسترسی مبتنی بر نقش (RBAC)
+- نقش‌های کاربری:
+  - `User`: کاربر عادی
+  - `Admin`: مدیر سیستم
+  - `Owner`: صاحب فروشگاه
 
-### Products
+### محصولات (Products)
 
-- Browse Products
-- Search Products
-- Edit Products
-- Filter Products
-- Sort Products
-- Pagination
-- Product Categories
+- مشاهده محصولات
+- جست‌وجوی محصولات
+- ویرایش محصولات
+- فیلترکردن محصولات
+- مرتب‌سازی محصولات
+- صفحه‌بندی نتایج (Pagination)
+- دسته‌بندی محصولات
 
-### Shopping Cart
+### سبد خرید (Shopping Cart)
 
-- Get Items
-- Add Items
-- Remove Items
-- Update Item Quantity
+- دریافت اقلام سبد خرید
+- افزودن محصولات به سبد خرید
+- حذف اقلام از سبد خرید
+- تغییر تعداد محصولات
 
-### Orders
+### سفارش‌ها (Orders)
 
-- Place Orders
-- Order History
-- Order Status
-- Order Tracking
+- ثبت سفارش
+- مشاهده تاریخچه سفارش‌ها
+- مدیریت وضعیت سفارش
+- پیگیری سفارش
 
-### Product Images(Soon)
+### تصاویر محصولات (به‌زودی)
 
-- Upload Product Images
-- Store Images in S3-Compatible Object Storage
-- Generate Public Image URLs
+- آپلود تصاویر محصولات
+- ذخیره تصاویر در فضای ذخیره‌سازی سازگار با S3
+- تولید URL عمومی برای تصاویر
 
-### Admin Panel
+### پنل مدیریت (Admin Panel)
 
-- Dashboard
-- Manage Products
-- Manage Categories
-- Manage Orders
-- Manage Users
-- Manage Shops
-- Manage Manufactures
+- داشبورد مدیریتی
+- مدیریت محصولات
+- مدیریت دسته‌بندی‌ها
+- مدیریت سفارش‌ها
+- مدیریت کاربران
+- مدیریت فروشگاه‌ها
+- مدیریت برندها و تولیدکنندگان
 
 ### Redis
 
-- Product Cache(Soon)
-- Cart Cache(Soon)
-- Rate Limiting
+- کش محصولات (به‌زودی)
+- کش سبد خرید (به‌زودی)
+- محدودسازی تعداد درخواست‌ها (Rate Limiting)
 
-### Background Jobs (Cron Jobs) (Soon)
+### وظایف پس‌زمینه (Cron Jobs) (به‌زودی)
 
-- Detect Low Stock Products
-- Clear Abandoned Carts
-- Remove Expired Refresh Tokens
-- Daily Maintenance Tasks
+- شناسایی محصولات با موجودی کم
+- پاک‌سازی سبدهای خرید رهاشده
+- حذف Refresh Tokenهای منقضی‌شده
+- اجرای وظایف نگهداری روزانه
 
-### File Upload (Soon)
+### آپلود فایل (به‌زودی)
 
-- Upload Files
-- Store Files using S3-Compatible Object Storage
-- Use MinIO for Local Development
-- Generate Public URLs for Uploaded Files
+- آپلود فایل‌ها
+- ذخیره فایل‌ها با استفاده از فضای ذخیره‌سازی سازگار با S3
+- استفاده از MinIO برای محیط توسعه محلی
+- تولید URLهای عمومی برای فایل‌های آپلودشده
 
-### API Documentation
+### مستندسازی API
 
-- Swagger (OpenAPI)
+- مستندسازی APIها با Swagger (OpenAPI)
 
-## Deployment
+## استقرار (Deployment)
 
-Docker Compose services:
+سرویس‌های در نظر گرفته‌شده برای Docker Compose:
 
 - API
 - PostgreSQL
 - Redis
-- MinIO (Object Storage) (Soon)
+- MinIO (فضای ذخیره‌سازی اشیا) (به‌زودی)
 
-## Object Storage (Soon)
+## فضای ذخیره‌سازی اشیا (Object Storage) (به‌زودی)
 
-This project uses MinIO, an S3-compatible object storage service running inside Docker for local development.
+این پروژه از MinIO، یک سرویس ذخیره‌سازی اشیای سازگار با S3، برای محیط توسعه محلی و اجرا در Docker استفاده می‌کند.
 
-The implementation demonstrates:
+این بخش مفاهیم زیر را پوشش می‌دهد:
 
-- Creating Buckets
-- Uploading Files
-- Downloading Files
-- Deleting Files
-- Generating Public URLs
-- S3 SDK Integration
+- ایجاد Bucket
+- آپلود فایل‌ها
+- دانلود فایل‌ها
+- حذف فایل‌ها
+- تولید URLهای عمومی
+- یکپارچه‌سازی با AWS S3 SDK
 
-## Roadmap
+## نقشه راه (Roadmap)
 
-- [ ] Design Database
-- [ ] Authentication
-- [ ] Authorization (RBAC)
-- [ ] Products
-- [ ] Categories
-- [ ] Shopping Cart
-- [ ] Orders
-- [ ] Admin APIs
-- [ ] Redis Integration
-- [ ] Object Storage (S3 / MinIO)
-- [ ] File Upload
-- [ ] Background Jobs (Cron Jobs)
-- [ ] Swagger Documentation
-- [ ] Dockerization
-- [ ] Production Deployment
+- [ ] طراحی پایگاه داده
+- [ ] پیاده‌سازی احراز هویت
+- [ ] پیاده‌سازی مجوزدهی (RBAC)
+- [ ] پیاده‌سازی محصولات
+- [ ] پیاده‌سازی دسته‌بندی‌ها
+- [ ] پیاده‌سازی سبد خرید
+- [ ] پیاده‌سازی سفارش‌ها
+- [ ] پیاده‌سازی APIهای پنل مدیریت
+- [ ] یکپارچه‌سازی Redis
+- [ ] پیاده‌سازی فضای ذخیره‌سازی اشیا (S3 / MinIO)
+- [ ] پیاده‌سازی آپلود فایل
+- [ ] پیاده‌سازی وظایف پس‌زمینه (Cron Jobs)
+- [ ] مستندسازی APIها با Swagger
+- [ ] کانتینرسازی با Docker
+- [ ] استقرار در محیط عملیاتی (Production)
 
-## Future Improvements
+## بهبودهای آینده (Future Improvements)
 
-- Payment Gateway Integration
-- Wishlist
-- Product Reviews & Ratings
-- Email Notifications
-- Order Email Confirmation
-- Recommendation System
-- Elasticsearch Product Search
-- WebSocket Notifications
-- CI/CD Pipeline
-- Automated Testing (Jest)
-- Monitoring & Logging
+- یکپارچه‌سازی درگاه پرداخت
+- فهرست علاقه‌مندی‌ها (Wishlist)
+- ثبت نظرات و امتیازدهی به محصولات
+- ارسال اعلان از طریق ایمیل
+- تأیید سفارش از طریق ایمیل
+- سیستم پیشنهاد محصول
+- جست‌وجوی محصولات با Elasticsearch
+- ارسال اعلان با WebSocket
+- خط یکپارچه‌سازی و استقرار مداوم (CI/CD)
+- تست‌های خودکار با Jest
+- پایش و ثبت رویدادها (Monitoring & Logging)
 
 ---
 
-The primary purpose of this project is to simulate the architecture and workflows of a production-grade e-commerce backend while applying modern backend development best practices.
+هدف اصلی این پروژه، شبیه‌سازی معماری و گردش کار یک بک‌اند تجارت الکترونیک در سطح Production و به‌کارگیری بهترین شیوه‌های مدرن توسعه بک‌اند است.
