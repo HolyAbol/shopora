@@ -1,6 +1,7 @@
+[🇬🇧 English](README.en.md) | [🇮🇷 فارسی](README.md)
+
 # Shopora
 
-[🇬🇧 English](README.en.md) | [🇮🇷 فارسی](README.md)
 یک بک‌اند فروشگاهی با الهام از معماری پروژه‌های واقعی، ساخته‌شده با Node.js، Express و TypeScript.
 
 ## معرفی پروژه

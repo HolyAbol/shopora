@@ -1,6 +1,7 @@
+[🇬🇧 English](README.en.md) | [🇮🇷 فارسی](README.md)
+
 # Shopora
 
-[🇬🇧 English](README.en.md) | [🇮🇷 فارسی](README.md)
 A production-inspired e-commerce backend built with Node.js, Express, and TypeScript.
 
 ## Overview
