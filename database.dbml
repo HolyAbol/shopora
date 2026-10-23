@@ -1,0 +1,155 @@
+Table "pgmigrations" {
+  "id" int4 [not null, increment]
+  "name" varchar(255) [not null]
+  "run_on" timestamp [not null]
+}
+
+Table "manufacturers" {
+  "manufacturer_id" int4 [pk, not null, increment]
+  "manufacturer_name" varchar(100) [unique, not null]
+  "country_code" bpchar(2) [not null]
+  "created_at" timestamp [default: `now()`]
+  "updated_at" timestamp
+  "deleted_at" timestamp
+}
+
+Table "shops" {
+  "shop_id" int4 [pk, not null, increment]
+  "owner_id" int4 [unique, not null]
+  "shop_name" varchar(100) [unique, not null]
+  "status" varchar(40) [not null, check: `(status)::text = ANY ((ARRAY['waiting for approval'::character varying, 'approved'::character varying, 'rejected'::character varying])::text[])`]
+  "created_at" timestamp [default: `now()`]
+  "approved_at" timestamp
+  "rejected_at" timestamp
+  "updated_at" timestamp
+  "deleted_at" timestamp
+}
+
+Table "categories" {
+  "category_id" int4 [pk, not null, increment]
+  "category_name" varchar(50) [unique, not null]
+  "category_parent_id" int4
+  "created_at" timestamp [default: `now()`]
+  "updated_at" timestamp
+  "deleted_at" timestamp
+}
+
+Table "products" {
+  "product_id" int4 [pk, not null, increment]
+  "product_name" varchar(50) [not null]
+  "shop_id" int4 [not null]
+  "manufacturer_id" int4 [not null]
+  "quantity" int4 [not null, check: `quantity >= 0`]
+  "price" int4 [not null]
+  "description" text
+  "is_active" bool [default: true]
+  "created_at" timestamp [default: `now()`]
+  "updated_at" timestamp
+  "deleted_at" timestamp
+  "low_stock_threshold" int4 [default: 5]
+}
+
+Table "product_categories" {
+  "product_id" int4 [not null]
+  "category_id" int4 [not null]
+  "deleted_at" timestamp
+
+  Indexes {
+    (product_id, category_id) [pk, type: btree, name: "pk_product_categories"]
+  }
+}
+
+Table "carts" {
+  "cart_id" int4 [pk, not null, increment]
+  "user_id" int4 [unique, not null]
+  "created_at" timestamp [default: `now()`]
+  "updated_at" timestamp
+  "deleted_at" timestamp
+}
+
+Table "cart_items" {
+  "cart_id" int4 [not null]
+  "product_id" int4 [not null]
+  "quantity" int4 [not null, check: `quantity > 0`]
+  "created_at" timestamp [default: `now()`]
+  "updated_at" timestamp
+  "deleted_at" timestamp
+
+  Indexes {
+    (cart_id, product_id) [pk, type: btree, name: "pk_cart_item"]
+  }
+}
+
+Table "addresses" {
+  "address_id" int4 [pk, not null, increment]
+  "user_id" int4 [unique, not null]
+  "address_title" varchar(15) [not null]
+  "country_code" bpchar(2) [not null]
+  "province" varchar(20) [not null]
+  "city" varchar(20) [not null]
+  "address_detail" text [not null]
+  "postal_code" bpchar(10) [not null]
+  "created_at" timestamp [default: `now()`]
+  "updated_at" timestamp
+  "deleted_at" timestamp
+}
+
+Table "orders" {
+  "order_id" int4 [pk, not null, increment]
+  "user_id" int4 [not null]
+  "address_id" int4 [not null]
+  "total_amount" int4 [not null]
+  "status" varchar(20) [not null, check: `(status)::text = ANY ((ARRAY['pending_payment'::character varying, 'processing'::character varying, 'sourcing'::character varying, 'warehouse'::character varying, 'packaging'::character varying, 'shipped'::character varying, 'delivered'::character varying, 'cancelled'::character varying])::text[])`, default: 'pending_payment']
+  "payment_method" varchar(20) [not null, check: `(payment_method)::text = ANY ((ARRAY['cash_on_delivery'::character varying, 'online_payment'::character varying, 'installment'::character varying])::text[])`]
+  "created_at" timestamp [default: `now()`]
+  "updated_at" timestamp
+  "deleted_at" timestamp
+}
+
+Table "order_items" {
+  "order_id" int4 [not null]
+  "product_id" int4 [not null]
+  "product_name" varchar(50) [not null]
+  "quantity" int4 [not null, check: `quantity > 0`]
+  "unit_price" int4 [not null]
+  "deleted_at" timestamp
+
+  Indexes {
+    (order_id, product_id) [pk, type: btree, name: "pk_order_item"]
+  }
+}
+
+Table "users" {
+  "user_id" int4 [pk, not null, increment]
+  "username" varchar(30) [unique, not null]
+  "password" varchar(60) [not null]
+  "email" varchar(254) [unique, not null]
+  "phone_number" varchar(11) [unique, not null]
+  "first_name" varchar(20)
+  "last_name" varchar(20)
+  "role" varchar(10) [not null, check: `(role)::text = ANY ((ARRAY['user'::character varying, 'admin'::character varying, 'owner'::character varying])::text[])`, default: 'user']
+  "created_at" timestamp [not null, default: `now()`]
+  "updated_at" timestamp
+  "deleted_at" timestamp
+  "last_activity" timestamp [not null, default: `now()`]
+}
+
+Ref "fk_cart_item":"carts"."cart_id" <? "cart_items"."cart_id"
+
+Ref "fk_cart_product":"products"."product_id" <? "cart_items"."product_id"
+
+Ref "fk_category_parent_id":"categories"."category_id" ?<? "categories"."category_parent_id"
+
+Ref "fk_order_id":"orders"."order_id" <? "order_items"."order_id"
+
+Ref "fk_product_id":"products"."product_id" <? "order_items"."product_id"
+
+Ref "fk_order_address_id":"addresses"."address_id" <? "orders"."address_id"
+
+Ref "fk_category_id":"categories"."category_id" <? "product_categories"."category_id"
+
+Ref "fk_product_id":"products"."product_id" <? "product_categories"."product_id"
+
+Ref "fk_manufacturer_id":"manufacturers"."manufacturer_id" <? "products"."manufacturer_id"
+
+Ref "fk_shop_id":"shops"."shop_id" <? "products"."shop_id"

@@ -4,6 +4,10 @@ import { userInfoSchema, changeUsernameSchema, changePasswordSchema } from './pr
 import { User } from '../auth/user.entity.ts';
 import { AppDataSource } from '../../configs/data-sources.ts';
 import z from 'zod';
+import { Shop } from '../shop/shop.entity.ts';
+import { Product } from '../products/product.entity.ts';
+import { softDeleteProducts } from '../products/products.helper.ts';
+import { IsNull } from 'typeorm';
 async function getProfile(req: Request, res: Response) {
   if (!req.user) {
     return res.status(404).json({ message: 'user not found' });
@@ -123,15 +127,35 @@ async function deleteProfile(req: Request, res: Response) {
   if (!req.user) {
     return res.status(401).json({ message: 'not authorized' });
   }
-  const userId = req.user.userId;
+  const user = req.user;
   try {
-    const repo = AppDataSource.getRepository(User);
-    const result = await repo.softDelete({ userId: userId });
+    if (user.role === 'user') {
+      const repo = AppDataSource.getRepository(User);
+      const result = await repo.softDelete({ userId: user.userId });
 
-    if (result.affected === 0) {
-      return res.status(404).json({ message: 'user not found' });
+      if (result.affected === 0) {
+        return res.status(404).json({ message: 'user not found' });
+      }
+
+      clearCookie(res);
+      return res.status(200).json({ message: 'goodbye' });
     }
+    const outcome = await AppDataSource.transaction(async (manager) => {
+      const shop = await manager.findOne(Shop, {
+        where: { ownerId: user.userId },
+        select: { shopId: true },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!shop) return 'not_found' as const;
+      await manager.softDelete(Shop, { shopId: shop.shopId, deletedAt: IsNull() });
+      await manager.softDelete(Product, { shopId: shop.shopId, deletedAt: IsNull() });
+      await softDeleteProducts(manager, { shopId: shop.shopId });
+      return 'ok' as const;
+    });
 
+    if (outcome === 'not_found') {
+      return res.status(404).json({ message: 'shop not found' });
+    }
     clearCookie(res);
     return res.status(200).json({ message: 'goodbye' });
   } catch {

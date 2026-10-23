@@ -8,6 +8,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  Index,
 } from 'typeorm';
 import { Cart } from '../cart/carts.entity';
 import { Address } from '../address/addresses.entity';
@@ -16,21 +17,33 @@ import { Shop } from '../shop/shop.entity';
 export type UserRole = 'user' | 'admin' | 'owner';
 
 @Entity('users')
+@Index('users_username_unique_active', ['username'], {
+  unique: true,
+  where: '"deleted_at" IS NULL',
+})
+@Index('users_email_unique_active', ['email'], {
+  unique: true,
+  where: '"deleted_at" IS NULL',
+})
+@Index('users_phone_number_unique_active', ['phoneNumber'], {
+  unique: true,
+  where: '"deleted_at" IS NULL',
+})
 @Check('chk_role', `"role" IN ('user', 'admin', 'owner')`)
 export class User {
   @PrimaryGeneratedColumn({ name: 'user_id', primaryKeyConstraintName: 'pk_user_id' })
   userId: number;
 
-  @Column({ type: 'varchar', length: 30, unique: true })
+  @Column({ type: 'varchar', length: 30 })
   username: string;
 
   @Column({ type: 'varchar', length: 60, select: false })
   password: string;
 
-  @Column({ type: 'varchar', length: 254, unique: true })
+  @Column({ type: 'varchar', length: 254 })
   email: string;
 
-  @Column({ name: 'phone_number', type: 'varchar', length: 11, unique: true })
+  @Column({ name: 'phone_number', type: 'varchar', length: 11 })
   phoneNumber: string;
 
   @Column({ name: 'first_name', type: 'varchar', length: 20, nullable: true })

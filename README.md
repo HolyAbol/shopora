@@ -17,10 +17,10 @@ The main goals of this project are:
 - Practice authentication and authorization
 - Implement Role-Based Access Control (RBAC)
 - Use Redis for caching and performance optimization
-- Work with background jobs (Cron Jobs)
-- Implement file uploads using Object Storage
+- Implement file uploads using Object Storage(Soon)
+- Work with background jobs (Cron Jobs)(Soon)
 - Document APIs with Swagger
-- Containerize the application using Docker
+- Containerize the application using Docker(Soon)
 - Deploy a production-ready backend
 
 ## Tech Stack
@@ -29,8 +29,9 @@ The main goals of this project are:
 - Express.js
 - TypeScript
 - PostgreSQL
+- TypeORM
+- Zod
 - Redis
-- Passport.js
 - JWT
 - Swagger (OpenAPI)
 - Docker
@@ -59,7 +60,7 @@ Full SQL schema: [`database/schema.sql`](database/schema.sql)
 | `addresses`        | User shipping addresses (one-to-many)                          |
 | `orders`           | Placed orders                                                  |
 | `order_items`      | Snapshot of purchased products (price locked at purchase time) |
-| `refresh_tokens`   | JWT refresh tokens per device/session                          |
+| `shops`            | Users owned shop                                               |
 
 ## Main Features
 
@@ -68,19 +69,19 @@ Full SQL schema: [`database/schema.sql`](database/schema.sql)
 - User Registration
 - User Login
 - JWT Authentication
-- Refresh Tokens
 - Logout
 - Password Hashing
 
 ### Authorization
 
 - Role-Based Access Control (RBAC)
-- Roles: User, Admin
+- Roles: User, Admin, Owner
 
 ### Products
 
 - Browse Products
 - Search Products
+- Edit Products
 - Filter Products
 - Sort Products
 - Pagination
@@ -88,6 +89,7 @@ Full SQL schema: [`database/schema.sql`](database/schema.sql)
 
 ### Shopping Cart
 
+- Get Items
 - Add Items
 - Remove Items
 - Update Item Quantity
@@ -99,7 +101,7 @@ Full SQL schema: [`database/schema.sql`](database/schema.sql)
 - Order Status
 - Order Tracking
 
-### Product Images
+### Product Images(Soon)
 
 - Upload Product Images
 - Store Images in S3-Compatible Object Storage
@@ -112,22 +114,23 @@ Full SQL schema: [`database/schema.sql`](database/schema.sql)
 - Manage Categories
 - Manage Orders
 - Manage Users
+- Manage Shops
+- Manage Manufactures
 
 ### Redis
 
-- Product Cache
-- Cart Cache
+- Product Cache(Soon)
+- Cart Cache(Soon)
 - Rate Limiting
-- JWT Token Blacklist
 
-### Background Jobs (Cron Jobs)
+### Background Jobs (Cron Jobs) (Soon)
 
 - Detect Low Stock Products
 - Clear Abandoned Carts
 - Remove Expired Refresh Tokens
 - Daily Maintenance Tasks
 
-### File Upload
+### File Upload (Soon)
 
 - Upload Files
 - Store Files using S3-Compatible Object Storage
@@ -145,9 +148,9 @@ Docker Compose services:
 - API
 - PostgreSQL
 - Redis
-- MinIO (Object Storage)
+- MinIO (Object Storage) (Soon)
 
-## Object Storage
+## Object Storage (Soon)
 
 This project uses MinIO, an S3-compatible object storage service running inside Docker for local development.
 

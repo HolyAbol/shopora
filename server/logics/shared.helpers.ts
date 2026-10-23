@@ -1,6 +1,5 @@
 import { DatabaseError } from 'pg';
 import { QueryFailedError } from 'typeorm';
-
 type projectStatus = 'online' | 'offline';
 const projectstatus = process.env.CURRENT_STATUS as projectStatus;
 function logger(err: unknown, status: projectStatus) {

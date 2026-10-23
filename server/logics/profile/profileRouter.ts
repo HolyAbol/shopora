@@ -1,4 +1,4 @@
-import { loginCheck } from '../auth/auth.middleware.ts';
+import { loginCheck, requireRole } from '../auth/auth.middleware.ts';
 import {
   changeFullname,
   changePassword,
@@ -180,6 +180,6 @@ Profilerouter.put('/change-fullname', loginCheck, changeFullname);
  *       500:
  *         description: Unexpected error
  */
-Profilerouter.delete('/delete-profile', loginCheck, deleteProfile);
+Profilerouter.delete('/delete-profile', loginCheck, requireRole('user'), deleteProfile);
 
 export { Profilerouter };
