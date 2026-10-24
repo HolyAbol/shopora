@@ -36,8 +36,9 @@ async function cartExistence(user_id: number, db?: EntityManager): Promise<numbe
 async function cartCreator(user_id: number, db?: EntityManager) {
   const manager = db ?? AppDataSource.manager;
   const repo = manager.getRepository(Cart);
-  const result = repo.create({ userId: user_id });
-  return await manager.save(result);
+  const result = await repo.save({ userId: user_id });
+
+  return result;
 }
 async function checkCartItems(user_id: number, db?: EntityManager) {
   const manager = db ?? AppDataSource.manager;

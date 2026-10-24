@@ -2,7 +2,7 @@ import { findUser, passHasher, compare, clearCookie } from './auth.helpers.ts';
 import { Response, Request } from 'express';
 import jwt from 'jsonwebtoken';
 import { loginSchema, signupSchema } from './auth.schemas.ts';
-import { logger, projectstatus } from '../shared.helpers.ts';
+import { isPgError, logger, projectstatus } from '../shared.helpers.ts';
 import { cartCreator } from '../cart/carts.helpers.ts';
 import z from 'zod';
 import { AppDataSource } from '../../configs/data-sources.ts';
@@ -18,7 +18,7 @@ async function signup(req: Request, res: Response) {
   const { userName, userEmail, userPhoneNumber, userPassword } = creds.data;
   const hashedPass = await passHasher(userPassword ?? '');
   try {
-    const outcome = await AppDataSource.transaction(async (manager) => {
+    await AppDataSource.transaction(async (manager) => {
       const user = manager.create(User, {
         username: userName,
         password: hashedPass,
@@ -26,18 +26,18 @@ async function signup(req: Request, res: Response) {
         phoneNumber: userPhoneNumber,
       });
       const result = await manager.save(user);
-      await cartCreator(result.userId, manager);
+      return await cartCreator(result.userId, manager);
     });
     return res.status(201).json({ message: 'success' });
-  } catch (err: any) {
-    const pgErr = err.driverError ?? err;
-    if (pgErr.code == '23505') {
+  } catch (err) {
+    const fkError = isPgError(err, '23505');
+    if (fkError) {
       const fieldMap: Record<string, string> = {
         users_username_key: 'userName',
         users_email_key: 'userEmail',
         users_phone_number_key: 'userPhoneNumber',
       };
-      const field = fieldMap[pgErr.constraint ?? ''] ?? 'unknown';
+      const field = fieldMap[fkError.constraint ?? ''] ?? 'unknown';
       return res.status(409).json({ message: `${field} already exists`, field });
     }
     logger(err, projectstatus);

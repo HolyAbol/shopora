@@ -12,6 +12,8 @@ function logger(err: unknown, status: projectStatus) {
 const isPgError = (err: unknown, code: string) =>
   err instanceof QueryFailedError &&
   err.driverError instanceof DatabaseError &&
-  err.driverError.code === code;
+  err.driverError.code === code
+    ? err.driverError
+    : null;
 
 export { logger, projectstatus, isPgError };

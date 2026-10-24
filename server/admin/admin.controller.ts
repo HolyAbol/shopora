@@ -603,7 +603,7 @@ async function changeUserRole(req: Request, res: Response) {
   const { role } = roleParse.data;
   try {
     if (role === 'owner') {
-      const outcome = await AppDataSource.transaction(async (manager) => {
+      await AppDataSource.transaction(async (manager) => {
         const userPromote = await manager.update(
           User,
           {

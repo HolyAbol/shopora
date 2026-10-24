@@ -79,13 +79,12 @@ async function addPro(req: Request, res: Response) {
     }
     return res.status(201).json({ message: 'success', product_id: outcome });
   } catch (err: unknown) {
-    if (isPgError(err, '23503')) {
-      const constraint = (err as any).driverError?.constraint;
-
-      if (constraint === 'fk_manufacturer_id') {
+    const fkError = isPgError(err, '23503');
+    if (fkError) {
+      if (fkError.constraint === 'fk_manufacturer_id') {
         return res.status(409).json({ message: "manufacturer doesn't exist" });
       }
-      if (constraint === 'fk_category_id') {
+      if (fkError.constraint === 'fk_category_id') {
         return res.status(409).json({ message: "category doesn't exist" });
       }
 

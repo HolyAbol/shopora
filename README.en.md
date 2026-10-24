@@ -10,6 +10,37 @@ Shopora is an e-commerce platform inspired by well-known online marketplaces suc
 
 The project focuses on backend architecture, clean code practices, scalability, and real-world software engineering concepts rather than frontend development.
 
+## How to setup
+
+**Prerequisites:** Node.js 20+, Docker, Docker Compose
+
+1. Copy the example env file and fill in the values:
+   ```bash
+   cp .env.example .env
+   ```
+2. Start the services:
+   ```bash
+   docker compose up -d
+   ```
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+4. Run the database migrations:
+   ```bash
+   npm run migrate:up
+   ```
+5. Seed the first admin user:
+   ```bash
+   npm run seed:admin
+   ```
+6. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+The API will be available at `http://localhost:8080` (Swagger docs at `/v1/api/docs`).
+
 ## Goals
 
 The main goals of this project are:
@@ -142,6 +173,7 @@ Full SQL schema: [`database/schema.sql`](database/schema.sql)
 ### API Documentation
 
 - Swagger (OpenAPI)
+  ![Swagger preview](docs/swagger.png)
 
 ## Deployment
 

@@ -5,6 +5,7 @@
   "main": "server.ts",
   "type": "module",
   "scripts": {
+    "seed:admin": "tsx ./server/seeds/adminSeed.ts",
     "dev": "nodemon --exec tsx ./server/server.ts",
     "migrate:up": "node-pg-migrate up",
     "migrate:down": "node-pg-migrate down",
